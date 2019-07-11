@@ -1,0 +1,19 @@
+# MacOS
+.DS_Store
+
+# Typescript
+*.map
+lib/
+
+# API secrets
+.env
+
+# Dependencies
+node_modules/
+
+# Emacs
+*~
+#*
+
+# VS Code
+.vscode/
