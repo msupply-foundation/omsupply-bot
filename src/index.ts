@@ -7,18 +7,18 @@ export = (app: Application) => {
     const { body } = pull_request;
 
     const issueRegex = /\#(\d+)/;
-    const regexMatch = issueRegex.exec(body);
+    const issueRegexMatch = issueRegex.exec(body);
 
-    if (regexMatch) {
-      const regexResult = regexMatch[1];
-      const number = parseInt(regexResult);
+    if (issueRegexMatch) {
+      const issueRegexResult = issueRegexMatch[1];
+      const number = parseInt(issueRegexResult);
 
       if (number) {
         const owner = "sussol";
         const repo = "msupply";
 
-        const { data } = await context.github.issues.get({owner, repo, number});
-        const labels = data.labels.map(label => label.name)
+        const issue = await context.github.issues.get({owner, repo, number});
+        const labels = issue.data.labels.map(label => label.name)
 
         const body = `Beep boop. This PR is associated with issue #${number}.`;
 
@@ -26,6 +26,29 @@ export = (app: Application) => {
 
         await context.github.issues.createComment(comment);
         await context.github.issues.addLabels(context.issue({ labels }));
+
+        const projects = await context.github.projects.listForRepo({ owner, repo});
+        if (projects) {
+          const project = projects.data[0];
+
+          if (project) {
+            const columns = await context.github.projects.listColumns({ project_id: project.id })
+            context.log(columns);
+            if (columns) {
+              const columnDoing = columns.data.find(column => column.name === "In progress");
+              const columnInPR = columns.data.find(column => column.name === "In PR");
+              if (columnDoing && columnInPR) {
+                const cardsDoing = await context.github.projects.listCards({ column_id: columnDoing.id })
+                if (cardsDoing) {
+                  const cardIssue = cardsDoing.data.find(card => card.content_url === issue.data.url);
+                  if (cardIssue) {
+                    await context.github.projects.moveCard({ card_id: cardIssue.id, position: 'top', column_id: columnInPR.id })
+                  }
+                }
+              }
+            }
+          }
+        }
 
         context.log(`PR opened for issue #${number}.`);
       } else {
