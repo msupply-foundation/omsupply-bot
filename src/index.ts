@@ -61,7 +61,16 @@ const updateLabels = async (
 ) => {
     const issue = await getIssue(context, { owner, repo, number })
     const labels = issue.data.labels.map(label => label.name)
-    return context.github.issues.addLabels(context.issue({ labels }))
+    return context.github.issues.update(context.issue({labels}));
+}
+
+const updateMilestone = async (
+    context: Context,
+    { owner, repo, number }: { owner: string; repo: string; number: number }
+) => {
+    const issue = await getIssue(context, { owner, repo, number })
+    const milestone = issue.data.milestone.number;
+    return context.github.issues.update(context.issue({milestone}));
 }
 
 const updateProject = async (
@@ -102,6 +111,7 @@ export = (app: Application) => {
         if (number) {
             Promise.all([
                 updateLabels(context, { owner, repo, number }),
+                updateMilestone(context, { owner, repo, number }),
                 updateProject(context, { owner, repo, number }),
             ])
 
