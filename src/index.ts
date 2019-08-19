@@ -61,7 +61,7 @@ const updateLabels = async (
 ) => {
     const issue = await getIssue(context, { owner, repo, number })
     const labels = issue.data.labels.map(label => label.name)
-    return context.github.issues.update(context.issue({labels}));
+    return context.github.issues.update(context.issue({ labels }))
 }
 
 const updateMilestone = async (
@@ -69,8 +69,21 @@ const updateMilestone = async (
     { owner, repo, number }: { owner: string; repo: string; number: number }
 ) => {
     const issue = await getIssue(context, { owner, repo, number })
-    const milestone = issue.data.milestone.number;
-    return context.github.issues.update(context.issue({milestone}));
+    const milestone = issue.data.milestone.number
+    return context.github.issues.update(context.issue({ milestone }))
+}
+
+const getColumnKey = ({ name: columnName }: { name: string }) => {
+    const COLUMN_KEYS: { [index: string]: any } = {
+        'Issue triage': 'TRIAGE',
+        'To do': 'TODO',
+        'In progress': 'IN_PROGRESS',
+        'In PR': 'IN_PR',
+        'Needs build testing': 'NEEDS_TEST',
+        'In build test': 'IN_TEST',
+        Done: 'DONE',
+    }
+    return COLUMN_KEYS[columnName]
 }
 
 const updateProject = async (
@@ -81,22 +94,32 @@ const updateProject = async (
     const project = await getProject(context, { owner, repo })
 
     if (project) {
-        const columns = await getColumns(context, project)
-        const columnDoing = columns.data.find(column => column.name === 'In Progress')
-        const columnInPR = columns.data.find(column => column.name === 'In PR')
+        const { data: issueData } = issue;
+        const { data: columnsData } = await getColumns(context, project)
 
-        if (columnDoing && columnInPR) {
-            const cardsDoing = await getCards(context, columnDoing)
+        const columns: { [index: string]: any } = columnsData
+            .map(column => ({ [getColumnKey(column)]: column }))
+            .reduce((acc, column) => ({ ...acc, ...column }))
 
-            if (cardsDoing) {
-                const issueCard = cardsDoing.data.find(card => card.content_url === issue.data.url)
+        const {
+            TRIAGE: columnTriage,
+            TODO: columnToDo,
+            IN_PROGRESS: columnInProgress,
+            IN_PR: columnInPR,
+            NEEDS_TEST: columnNeedsTest,
+            IN_TEST: columnInTest,
+            DONE: columnDone,
+        } = columns
 
-                if (issueCard) {
-                    const { id: card_id } = issueCard
-                    const { id: column_id } = columnInPR
-                    await moveCard(context, { card_id, column_id })
-                }
-            }
+        const issueColumns = [columnTriage, columnToDo, columnInProgress]
+        const issueCards = await Promise.all(issueColumns.map(column => getCards(context,column)));
+        const issueCardsData = issueCards.flatMap(({ data: cardData }) => cardData)
+        const issueCard = issueCardsData.find(card => card.content_url === issueData.url)
+
+        if (issueCard) {
+            const { id: card_id } = issueCard
+            const { id: column_id } = columnInPR
+            await moveCard(context, { card_id, column_id })
         }
     }
 }
