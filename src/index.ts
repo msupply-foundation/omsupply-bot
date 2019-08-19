@@ -94,7 +94,8 @@ const updateProject = async (
     const project = await getProject(context, { owner, repo })
 
     if (project) {
-        const { data: issueData } = issue;
+        const { data: issueData } = issue
+        const { url: issueUrl } = issueData
         const { data: columnsData } = await getColumns(context, project)
 
         const columns: { [index: string]: any } = columnsData
@@ -112,9 +113,9 @@ const updateProject = async (
         } = columns
 
         const issueColumns = [columnTriage, columnToDo, columnInProgress]
-        const issueCards = await Promise.all(issueColumns.map(column => getCards(context,column)));
+        const issueCards = await Promise.all(issueColumns.map(column => getCards(context, column)))
         const issueCardsData = issueCards.flatMap(({ data: cardData }) => cardData)
-        const issueCard = issueCardsData.find(card => card.content_url === issueData.url)
+        const issueCard = issueCardsData.find(({ content_url: cardUrl }) => cardUrl === issueUrl)
 
         if (issueCard) {
             const { id: card_id } = issueCard
