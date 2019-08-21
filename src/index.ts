@@ -1,5 +1,22 @@
 import { Application, Context } from 'probot'
 
+function zip<T>(a: T[], b: T[]): Readonly<Readonly<[T, T]>[]> {
+    return a.map((v, i) => [v, b[i]])
+}
+
+const COLUMN_KEYS: string[] = ['IN_TRIAGE', 'TO_DO', 'DOING', 'IN_PR', 'TO_TEST', 'TESTING', 'DONE']
+const COLUMN_NAMES: string[] = [
+    'Issue triage',
+    'To do',
+    'In progress',
+    'In PR',
+    'Needs build testing',
+    'In build test',
+    'Done',
+]
+
+const COLUMN_MAP = new Map<string, string>(zip<string>(COLUMN_KEYS, COLUMN_NAMES))
+
 const getIssueNumber = (context: Context) => {
     const { payload } = context
     const { pull_request } = payload
@@ -73,19 +90,6 @@ const updateMilestone = async (
     return context.github.issues.update(context.issue({ milestone }))
 }
 
-const getColumnKey = ({ name: columnName }: { name: string }) => {
-    const COLUMN_KEYS: { [index: string]: any } = {
-        'Issue triage': 'TRIAGE',
-        'To do': 'TODO',
-        'In progress': 'IN_PROGRESS',
-        'In PR': 'IN_PR',
-        'Needs build testing': 'NEEDS_TEST',
-        'In build test': 'IN_TEST',
-        Done: 'DONE',
-    }
-    return COLUMN_KEYS[columnName]
-}
-
 const updateProject = async (
     context: Context,
     { owner, repo, number }: { owner: string; repo: string; number: number }
@@ -99,20 +103,24 @@ const updateProject = async (
         const { data: columnsData } = await getColumns(context, project)
 
         const columns: { [index: string]: any } = columnsData
-            .map(column => ({ [getColumnKey(column)]: column }))
+            .map(column => {
+                const { name: columnName } = column
+                const columnKey = COLUMN_MAP.get(columnName) || columnName
+                return { [columnKey]: column }
+            })
             .reduce((acc, column) => ({ ...acc, ...column }))
 
         const {
-            TRIAGE: columnTriage,
-            TODO: columnToDo,
-            IN_PROGRESS: columnInProgress,
+            IN_TRIAGE: columnInTriage,
+            TO_DO: columnToDo,
+            DOING: columnDoing,
             IN_PR: columnInPR,
-            NEEDS_TEST: columnNeedsTest,
-            IN_TEST: columnInTest,
+            TO_TEST: columnToTest,
+            TESTING: columnTesting,
             DONE: columnDone,
         } = columns
 
-        const issueColumns = [columnTriage, columnToDo, columnInProgress]
+        const issueColumns = [columnInTriage, columnToDo, columnDoing]
         const issueCards = await Promise.all(issueColumns.map(column => getCards(context, column)))
         const issueCardsData = issueCards.flatMap(({ data: cardData }) => cardData)
         const issueCard = issueCardsData.find(({ content_url: cardUrl }) => cardUrl === issueUrl)
