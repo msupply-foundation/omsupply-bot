@@ -15,7 +15,7 @@ const COLUMN_NAMES: string[] = [
     'Done',
 ]
 
-const COLUMN_MAP = new Map<string, string>(zip<string>(COLUMN_KEYS, COLUMN_NAMES))
+const COLUMN_MAP = new Map<string, string>(zip<string>(COLUMN_NAMES, COLUMN_KEYS))
 
 const getIssueNumber = (context: Context) => {
     const { payload } = context
@@ -110,15 +110,7 @@ const updateProject = async (
             })
             .reduce((acc, column) => ({ ...acc, ...column }))
 
-        const {
-            IN_TRIAGE: columnInTriage,
-            TO_DO: columnToDo,
-            DOING: columnDoing,
-            IN_PR: columnInPR,
-            TO_TEST: columnToTest,
-            TESTING: columnTesting,
-            DONE: columnDone,
-        } = columns
+        const { IN_TRIAGE: columnInTriage, TO_DO: columnToDo, DOING: columnDoing, IN_PR: columnInPR } = columns
 
         const issueColumns = [columnInTriage, columnToDo, columnDoing]
         const issueCards = await Promise.all(issueColumns.map(column => getCards(context, column)))
