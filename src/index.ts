@@ -9,7 +9,8 @@ const matchFirst = (s: string, r: RegExp) => {
     return result
 }
 
-const parseIssueNumber = (body: string) => parseInt(matchFirst(body, /\#(\d+)/)) || null
+// TODO: parse out comments strings.
+const parseIssueNumber = (body: string) => parseInt(matchFirst(body, /Fixes \#(\d+)/)) || null
 
 const COLUMN_KEYS: string[] = ['IN_TRIAGE', 'TO_DO', 'DOING', 'IN_PR', 'TO_TEST', 'TESTING', 'DONE']
 
@@ -33,6 +34,9 @@ export = (app: Application) => {
         const { pull_request: pullRequest } = payload
         const { body: pullRequestBody } = pullRequest
         const issueNumber = parseIssueNumber(pullRequestBody)
+
+        console.log(issueNumber);
+
         const { listForRepo: getRepoProjects } = projects;
         const repoProjects = await getRepoProjects({owner: pullRequestOwner, repo: pullRequestRepo})
         const { data: repoProjectsData } = repoProjects;
@@ -43,6 +47,10 @@ export = (app: Application) => {
             const { data: parentIssueData } = parentIssue;
             const { labels: parentIssueLabels, milestone: parentIssueMilestone } = parentIssueData;
             const parentIssueLabelNames = parentIssueLabels.map(label => label.name)
+
+            console.log(parentIssueLabels)
+            console.log(parentIssueMilestone)
+
             const { number: parentIssueMilestoneNumber } = parentIssueMilestone;
             const updatedPullRequest = await context.issue({ labels: parentIssueLabelNames, milestone: parentIssueMilestoneNumber });
             await issues.update(updatedPullRequest)
