@@ -117,7 +117,7 @@ const mapLookup = <T, U>(m: Map<T, U>, k: T): U | undefined => m.get(k)
 const getColumn = (columnName: string): string | undefined => mapLookup(COLUMN_MAP, columnName.toLowerCase())
 const getLabel = (labelName: string): string | undefined => mapLookup(LABEL_MAP, labelName.toLowerCase())
 const getLabelColumn = (labelName: string): string | undefined =>
-    mapLookup(LABEL_COLUMN_MAP, getLabel(labelName.toLowerCase()))
+    mapLookup(LABEL_COLUMN_MAP, getLabel(parseIssueLabel(labelName).toLowerCase()))
 
 const getRepo = async (github: GitHubAPI, context: Context) => {
     const { repos } = github
@@ -189,7 +189,7 @@ export = (app: Application) => {
 
         const repo: ReposGetResponse = await getRepo(github, context)
         const repoProject: ProjectsListForRepoResponseItem | undefined = await getProject(github, repo)
-        const labelColumn: string | undefined = getLabelColumn(parseIssueLabel(name))
+        const labelColumn: string | undefined = getLabelColumn(name)
 
         if (repoProject && labelColumn) {
             const columns = await getColumns(github, repoProject)
@@ -204,19 +204,21 @@ export = (app: Application) => {
                 DONE: columnDone,
             } = columns
 
-            const notDoneColumns = filterNull([
+            const columnList = filterNull([
                 columnInTriage,
                 columnToDo,
                 columnDoing,
                 columnInPR,
                 columnToTest,
                 columnTesting,
+                columnDone,
             ])
 
-            const notDoneCards = await flatMapPromise(notDoneColumns, column => getCards(github, column))
-            const issueCard = findCard(notDoneCards, issue)
+            const cards = await flatMapPromise(columnList, column => getCards(github, column))
+            const card = findCard(cards, issue)
+            const column = columns[labelColumn]
 
-            if (issueCard) await moveCard(github, issueCard, columnDone)
+            if (card && column) await moveCard(github, card, column)
         }
     })
 
