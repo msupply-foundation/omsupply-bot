@@ -1,4 +1,15 @@
 import { Application, Context } from 'probot'
+import {
+    ProjectsListForRepoResponseItem,
+    ProjectsListForRepoParams,
+    ProjectsListCardsParams,
+    ProjectsListColumnsParams,
+    ProjectsListCardsResponseItem,
+    ProjectsListColumnsResponseItem,
+    ProjectsMoveCardParams,
+    ReposGetResponse,
+} from '@octokit/rest'
+import { GitHubAPI } from 'probot/lib/github'
 
 const COLUMN_KEYS: readonly string[] = ['TO_TRIAGE', 'TO_DO', 'TO_PR', 'IN_PR', 'TO_TEST', 'IN_TEST', 'DONE']
 
@@ -115,7 +126,60 @@ const getLabelColumn = (labelName: string): string | undefined =>
     'Done',
 ]
 
-const COLUMN_MAP = new Map<string, string>(zip<string>(COLUMN_NAMES, COLUMN_KEYS))
+const getRepo = async (github: GitHubAPI, context: Context) => {
+    const { repos } = github
+    const { get } = repos
+    const getRepoParams = context.issue()
+    return get(getRepoParams).then(({ data }) => data)
+}
+
+const getProject = async (github: GitHubAPI, repo: ReposGetResponse) => {
+    const { projects } = github
+    const { listForRepo } = projects
+    const { name: repoName, owner: repoOwner } = repo
+    const { login: ownerName } = repoOwner
+    const listForRepoParams = { repo: repoName, owner: ownerName }
+    const isRepoProject = ({ name: projectName }: { name: string }) => stringEquals(projectName, repoName)
+    const findRepoProject = ({ data }: { data: ProjectsListForRepoResponseItem[] }) => find(data, isRepoProject)
+    return listForRepo(listForRepoParams).then(findRepoProject)
+}
+
+const getColumns = async (
+    github: GitHubAPI,
+    project: ProjectsListForRepoResponseItem
+): Promise<{ [index: string]: any }> => {
+    const { projects } = github
+    const { listColumns } = projects
+    const { id: project_id } = project
+    const listColumnsParams = { project_id }
+    return listColumns(listColumnsParams).then(({ data }) =>
+        merge(
+            mapFilterNull(data, column => {
+                const { name } = column
+                const columnKey = getColumn(name)
+                return columnKey && { [columnKey]: column }
+            })
+        )
+    )
+}
+
+const getCards = async (github: GitHubAPI, column: ProjectsListColumnsResponseItem) => {
+    const { projects } = github
+    const { listCards } = projects
+    const { id: column_id } = column
+    const listCardsParams = { column_id }
+    return listCards(listCardsParams).then(({ data }) => data)
+}
+
+
+const moveCard = (github: GitHubAPI, card: ProjectsListCardsResponseItem, column: ProjectsListColumnsResponseItem) => {
+    const { projects } = github
+    const { moveCard } = projects
+    const { id: card_id } = card
+    const { id: column_id } = column
+    const moveCardParams: ProjectsMoveCardParams = { card_id, column_id, position: 'top' }
+    return moveCard(moveCardParams)
+}
 
 export = (app: Application) => {
     app.on(['pull_request.opened', 'pull_request.reopened'], async (context: Context) => {
