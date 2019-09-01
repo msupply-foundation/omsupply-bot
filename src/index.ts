@@ -1,9 +1,6 @@
 import { Application, Context } from 'probot'
 import {
     ProjectsListForRepoResponseItem,
-    ProjectsListForRepoParams,
-    ProjectsListCardsParams,
-    ProjectsListColumnsParams,
     ProjectsListCardsResponseItem,
     ProjectsListColumnsResponseItem,
     ProjectsMoveCardParams,
@@ -121,10 +118,6 @@ const getColumn = (columnName: string): string | undefined => mapLookup(COLUMN_M
 const getLabel = (labelName: string): string | undefined => mapLookup(LABEL_MAP, labelName.toLowerCase())
 const getLabelColumn = (labelName: string): string | undefined =>
     mapLookup(LABEL_COLUMN_MAP, getLabel(labelName.toLowerCase()))
-    'Needs build testing',
-    'In build test',
-    'Done',
-]
 
 const getRepo = async (github: GitHubAPI, context: Context) => {
     const { repos } = github
@@ -170,7 +163,6 @@ const getCards = async (github: GitHubAPI, column: ProjectsListColumnsResponseIt
     const listCardsParams = { column_id }
     return listCards(listCardsParams).then(({ data }) => data)
 }
-
 
 const moveCard = (github: GitHubAPI, card: ProjectsListCardsResponseItem, column: ProjectsListColumnsResponseItem) => {
     const { projects } = github
@@ -230,46 +222,54 @@ export = (app: Application) => {
 
     app.on(['pull_request.opened', 'pull_request.reopened'], async (context: Context) => {
         const { github, payload } = context
-        const { issues, projects } = github;
-        const { owner: pullRequestOwner, repo: pullRequestRepo } = context.issue();
+        const { issues, projects } = github
+        const { owner: pullRequestOwner, repo: pullRequestRepo } = context.issue()
         const { pull_request: pullRequest } = payload
         const { body: pullRequestBody } = pullRequest
-        const issueNumber = parseIssueNumber(pullRequestBody)
+        const issueNumber = parseInt(parseIssueNumber(pullRequestBody))
 
-        console.log(issueNumber);
-
-        const { listForRepo: getRepoProjects } = projects;
-        const repoProjects = await getRepoProjects({owner: pullRequestOwner, repo: pullRequestRepo})
-        const { data: repoProjectsData } = repoProjects;
-        const repoProject = repoProjectsData.find(({ name: repoName }) => repoName.toLowerCase() === pullRequestRepo.toLowerCase())
+        const { listForRepo: getRepoProjects } = projects
+        const repoProjects = await getRepoProjects({ owner: pullRequestOwner, repo: pullRequestRepo })
+        const { data: repoProjectsData } = repoProjects
+        const repoProject = repoProjectsData.find(
+            ({ name: repoName }) =>
+                repoName && pullRequestRepo && repoName.toLowerCase() == pullRequestRepo.toLowerCase()
+        )
 
         if (issueNumber) {
-            const parentIssue = await issues.get({ owner: pullRequestOwner, repo: pullRequestRepo, number: issueNumber })
-            const { data: parentIssueData } = parentIssue;
-            const { labels: parentIssueLabels, milestone: parentIssueMilestone } = parentIssueData;
+            const parentIssue = await issues.get({
+                owner: pullRequestOwner,
+                repo: pullRequestRepo,
+                number: issueNumber,
+            })
+            const { data: parentIssueData } = parentIssue
+            const { labels: parentIssueLabels, milestone: parentIssueMilestone } = parentIssueData
             const parentIssueLabelNames = parentIssueLabels.map(label => label.name)
 
-            console.log(parentIssueLabels)
-            console.log(parentIssueMilestone)
-
-            const { number: parentIssueMilestoneNumber } = parentIssueMilestone;
-            const updatedPullRequest = await context.issue({ labels: parentIssueLabelNames, milestone: parentIssueMilestoneNumber });
+            const { number: parentIssueMilestoneNumber } = parentIssueMilestone
+            const updatedPullRequest = await context.issue({
+                labels: parentIssueLabelNames,
+                milestone: parentIssueMilestoneNumber,
+            })
             await issues.update(updatedPullRequest)
 
             if (repoProject) {
-                const { url: parentIssueUrl } = parentIssueData;
-                const { id: projectId } = repoProject;
-                const columnsList = await projects.listColumns({ project_id: projectId });
-                const { data: columnsData } = columnsList;
+                const { url: parentIssueUrl } = parentIssueData
+                const { id: projectId } = repoProject
+                const columnsList = await projects.listColumns({ project_id: projectId })
+                const { data: columnsData } = columnsList
                 const columns: { [index: string]: any } = columnsData
-                 .map(column => {
-                    const { name: columnName } = column
-                    const columnKey = COLUMN_MAP.get(columnName) || columnName
-                    return { [columnKey]: column }
-                }).reduce((acc, column) => ({ ...acc, ...column }))
-                const { IN_TRIAGE: columnInTriage, TO_DO: columnToDo, DOING: columnDoing, IN_PR: columnInPR } = columns
+                    .map(column => {
+                        const { name: columnName } = column
+                        const columnKey = COLUMN_MAP.get(columnName) || columnName
+                        return { [columnKey]: column }
+                    })
+                    .reduce((acc, column) => ({ ...acc, ...column }))
+                const { TO_TRIAGE: columnInTriage, TO_DO: columnToDo, TO_PR: columnDoing, IN_PR: columnInPR } = columns
                 const issueColumns = [columnInTriage, columnToDo, columnDoing]
-                const issueCards = await Promise.all(issueColumns.map(({id: columnId}) => projects.listCards({column_id: columnId})));
+                const issueCards = await Promise.all(
+                    issueColumns.map(({ id: columnId }) => projects.listCards({ column_id: columnId }))
+                )
                 const issueCardsData = issueCards.flatMap(({ data: cardData }) => cardData)
                 const issueCard = issueCardsData.find(({ content_url: cardUrl }) => cardUrl === parentIssueUrl)
 
@@ -280,12 +280,12 @@ export = (app: Application) => {
                         card_id,
                         position: 'top',
                         column_id,
-                    });
+                    })
                 }
-            } 
+            }
         } else {
             const body = 'Beep boop. This PR does not have an associated issue!'
-            await issues.createComment(context.issue({body}));
+            await issues.createComment(context.issue({ body }))
         }
     })
 }
