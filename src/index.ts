@@ -10,6 +10,8 @@ import {
 } from '@octokit/rest'
 import { GitHubAPI } from 'probot/lib/github'
 
+type ColumnMap = { [index: string]: ProjectsListColumnsResponseItem }
+
 const COLUMN_KEYS: readonly string[] = ['TO_TRIAGE', 'TO_DO', 'TO_PR', 'IN_PR', 'TO_TEST', 'IN_TEST', 'DONE']
 
 const COLUMN_NAMES: readonly string[] = [
@@ -162,12 +164,12 @@ const getProject = async (github: GitHubAPI, repo: ReposGetResponse) => {
 const getColumns = async (
     github: GitHubAPI,
     project: ProjectsListForRepoResponseItem
-): Promise<{ [index: string]: any }> => {
+): Promise<ColumnMap> => {
     const { projects } = github
     const { listColumns } = projects
     const { id: project_id } = project
     const listColumnsParams = { project_id }
-    return listColumns(listColumnsParams).then(({ data }) =>
+    const columns = listColumns(listColumnsParams).then(({ data }) =>
         merge(
             mapFilterNull(data, column => {
                 const { name } = column
@@ -176,6 +178,7 @@ const getColumns = async (
             })
         )
     )
+    return columns as Promise<ColumnMap> 
 }
 
 const getCards = async (github: GitHubAPI, column: ProjectsListColumnsResponseItem) => {
@@ -228,17 +231,18 @@ export = (app: Application) => {
             } = columns
 
             const columnList = filterNull([
-                columnInTriage,
-                columnToDo,
-                columnDoing,
-                columnInPR,
-                columnToTest,
-                columnTesting,
-                columnDone,
+                columns.TO_TRIAGE,
+                columns.TO_DO,
+                columns.DOING,
+                columns.IN_PR,
+                columns.TO_TEST,
+                columns.TESTING,
+                columns.DONE
             ])
 
             const cards = await flatMapPromise(columnList, column => getCards(github, column))
             const card = findCard(cards, issue)
+
             const column = columns[labelColumn]
 
             if (card && column) await moveCard(github, card, column)
@@ -271,10 +275,12 @@ export = (app: Application) => {
                 } = columns
     
                 const columnList = filterNull([
-                    columnInTriage,
-                    columnToDo,
-                    columnDoing,
+                    columns.TO_TRIAGE,
+                    columns.TO_DO,
+                    columns.DOING,
                 ])
+
+                const { IN_PR: columnInPR } = columns
 
                 const cards = await flatMapPromise(columnList, column => getCards(github, column))
                 const card = findCard(cards, linkedIssue)
