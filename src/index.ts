@@ -187,6 +187,47 @@ const findCard = (cards: ProjectsListCardsResponseItem[], issue: { url: string }
 }
 
 export = (app: Application) => {
+    app.on('issues.labeled', async (context: Context) => {
+        const {
+            github,
+            payload,
+        }: { github: GitHubAPI; payload: { label: { name: string }; issue: { url: string } } } = context
+        const { label, issue } = payload
+        const { name } = label
+
+        const repo: ReposGetResponse = await getRepo(github, context)
+        const repoProject: ProjectsListForRepoResponseItem | undefined = await getProject(github, repo)
+        const labelColumn: string | undefined = getLabelColumn(parseIssueLabel(name))
+
+        if (repoProject && labelColumn) {
+            const columns = await getColumns(github, repoProject)
+
+            const {
+                TO_TRIAGE: columnInTriage,
+                TO_DO: columnToDo,
+                TO_PR: columnDoing,
+                IN_PR: columnInPR,
+                TO_TEST: columnToTest,
+                IN_TEST: columnTesting,
+                DONE: columnDone,
+            } = columns
+
+            const notDoneColumns = filterNull([
+                columnInTriage,
+                columnToDo,
+                columnDoing,
+                columnInPR,
+                columnToTest,
+                columnTesting,
+            ])
+
+            const notDoneCards = await flatMapPromise(notDoneColumns, column => getCards(github, column))
+            const issueCard = findCard(notDoneCards, issue)
+
+            if (issueCard) await moveCard(github, issueCard, columnDone)
+        }
+    })
+
     app.on(['pull_request.opened', 'pull_request.reopened'], async (context: Context) => {
         const { github, payload } = context
         const { issues, projects } = github;
