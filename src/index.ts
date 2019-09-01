@@ -1,6 +1,16 @@
 import { Application, Context } from 'probot'
 
-const zip = <T>(a: T[], b: T[]): Readonly<Readonly<[T, T]>[]> => a.map((v, i) => [v, b[i]])
+const COLUMN_KEYS: readonly string[] = ['TO_TRIAGE', 'TO_DO', 'TO_PR', 'IN_PR', 'TO_TEST', 'IN_TEST', 'DONE']
+
+const COLUMN_NAMES: readonly string[] = [
+    'issue triage',
+    'to do',
+    'in progress',
+    'in pr',
+    'needs build testing',
+    'in build test',
+    'done',
+]
 
 const LABEL_KEYS: readonly string[] = [
     'BUG',
@@ -32,7 +42,7 @@ const LABEL_NAMES: readonly string[] = [
     'closed',
 ]
 
-const match = (s: string, r: RegExp) => s.match(r) || []
+const LABEL_COLUMNS: readonly (readonly [string, string])[] = [['TESTED', 'DONE'], ['CLOSED', 'DONE']]
 
 const matchFirst = (s: string, r: RegExp) => {
     const [,result] = match(s, r)
@@ -44,6 +54,7 @@ const parseIssueNumber = (body: string) => parseInt(matchFirst(body, /Fixes \#(\
 
 const COLUMN_MAP = new Map<string, string>(zip<string>(COLUMN_NAMES, COLUMN_KEYS))
 const LABEL_MAP = new Map<string, string>(zip<string>(LABEL_NAMES, LABEL_KEYS))
+const LABEL_COLUMN_MAP = new Map<string, string>(LABEL_COLUMNS)
 
 const COLUMN_NAMES: string[] = [
     'Issue triage',
