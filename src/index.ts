@@ -5,6 +5,8 @@ import {
     ProjectsListColumnsResponseItem,
     ProjectsMoveCardParams,
     ReposGetResponse,
+    IssuesGetResponse,
+    IssuesGetParams,
 } from '@octokit/rest'
 import { GitHubAPI } from 'probot/lib/github'
 
@@ -119,11 +121,31 @@ const getLabel = (labelName: string): string | undefined => mapLookup(LABEL_MAP,
 const getLabelColumn = (labelName: string): string | undefined =>
     mapLookup(LABEL_COLUMN_MAP, getLabel(parseIssueLabel(labelName).toLowerCase()))
 
-const getRepo = async (github: GitHubAPI, context: Context) => {
+const getRepo = async (github: GitHubAPI, repoParams: { owner: string, repo: string }) => {
     const { repos } = github
     const { get } = repos
-    const getRepoParams = context.issue()
-    return get(getRepoParams).then(({ data }) => data)
+    return get(repoParams).then(({ data }) => data)
+}
+
+const getLinkedIssue = async (github: GitHubAPI, repo: ReposGetResponse, issueNumber: number) => {
+    const { issues } = github
+    const { get } = issues
+    const { name: repoName, owner: repoOwner } = repo
+    const { login: ownerName } = repoOwner
+    const getParams = { repo: repoName, owner: ownerName, number: issueNumber }
+    return get(getParams).then(({ data }) => data)
+}
+
+const updatePullRequest = async (github: GitHubAPI, linkedIssue: IssuesGetResponse, issueParams: IssuesGetParams) => {
+    const extractLabelParam = ({ name }: { name: string }) => name
+    const extractMilestoneParam = ({ number }: { number: number }) => number
+    const { issues } = github
+    const { update } = issues
+    const { labels: linkedLabels, milestone: linkedMilestone} = linkedIssue
+    const labelParams = linkedLabels && map(linkedLabels, extractLabelParam)
+    const milestoneParam = linkedMilestone && extractMilestoneParam(linkedMilestone) 
+    const updateParams = { ...issueParams, labels: labelParams, milestone: milestoneParam }
+    return update(updateParams)
 }
 
 const getProject = async (github: GitHubAPI, repo: ReposGetResponse) => {
@@ -184,10 +206,11 @@ export = (app: Application) => {
             github,
             payload,
         }: { github: GitHubAPI; payload: { label: { name: string }; issue: { url: string } } } = context
-        const { label, issue } = payload
-        const { name } = label
+        const repoParams: { repo: string, owner: string } = context.issue()
+        const { label, issue }: { label: { name: string }, issue: { url: string } } = payload
+        const { name }: { name: string } = label
 
-        const repo: ReposGetResponse = await getRepo(github, context)
+        const repo: ReposGetResponse = await getRepo(github, repoParams)
         const repoProject: ProjectsListForRepoResponseItem | undefined = await getProject(github, repo)
         const labelColumn: string | undefined = getLabelColumn(name)
 
@@ -224,66 +247,39 @@ export = (app: Application) => {
 
     app.on(['pull_request.opened', 'pull_request.reopened'], async (context: Context) => {
         const { github, payload } = context
-        const { issues, projects } = github
-        const { owner: pullRequestOwner, repo: pullRequestRepo } = context.issue()
+        const { issues } = github
         const { pull_request: pullRequest } = payload
         const { body: pullRequestBody } = pullRequest
+        
+        const issueParams: { repo: string, owner: string, number: number } = context.issue() 
+        const repo: ReposGetResponse = await getRepo(github, issueParams)
         const issueNumber = parseInt(parseIssueNumber(pullRequestBody))
 
-        const { listForRepo: getRepoProjects } = projects
-        const repoProjects = await getRepoProjects({ owner: pullRequestOwner, repo: pullRequestRepo })
-        const { data: repoProjectsData } = repoProjects
-        const repoProject = repoProjectsData.find(
-            ({ name: repoName }) =>
-                repoName && pullRequestRepo && repoName.toLowerCase() == pullRequestRepo.toLowerCase()
-        )
-
-        if (issueNumber) {
-            const parentIssue = await issues.get({
-                owner: pullRequestOwner,
-                repo: pullRequestRepo,
-                number: issueNumber,
-            })
-            const { data: parentIssueData } = parentIssue
-            const { labels: parentIssueLabels, milestone: parentIssueMilestone } = parentIssueData
-            const parentIssueLabelNames = parentIssueLabels.map(label => label.name)
-
-            const { number: parentIssueMilestoneNumber } = parentIssueMilestone
-            const updatedPullRequest = await context.issue({
-                labels: parentIssueLabelNames,
-                milestone: parentIssueMilestoneNumber,
-            })
-            await issues.update(updatedPullRequest)
+        if (issueNumber && repo) {
+            const linkedIssue = await getLinkedIssue(github, repo, issueNumber) 
+            await updatePullRequest(github, linkedIssue, issueParams)
+            const repoProject: ProjectsListForRepoResponseItem | undefined = await getProject(github, repo)
 
             if (repoProject) {
-                const { url: parentIssueUrl } = parentIssueData
-                const { id: projectId } = repoProject
-                const columnsList = await projects.listColumns({ project_id: projectId })
-                const { data: columnsData } = columnsList
-                const columns: { [index: string]: any } = columnsData
-                    .map(column => {
-                        const { name: columnName } = column
-                        const columnKey = COLUMN_MAP.get(columnName) || columnName
-                        return { [columnKey]: column }
-                    })
-                    .reduce((acc, column) => ({ ...acc, ...column }))
-                const { TO_TRIAGE: columnInTriage, TO_DO: columnToDo, TO_PR: columnDoing, IN_PR: columnInPR } = columns
-                const issueColumns = [columnInTriage, columnToDo, columnDoing]
-                const issueCards = await Promise.all(
-                    issueColumns.map(({ id: columnId }) => projects.listCards({ column_id: columnId }))
-                )
-                const issueCardsData = issueCards.flatMap(({ data: cardData }) => cardData)
-                const issueCard = issueCardsData.find(({ content_url: cardUrl }) => cardUrl === parentIssueUrl)
+                const columns = await getColumns(github, repoProject)
 
-                if (issueCard) {
-                    const { id: card_id } = issueCard
-                    const { id: column_id } = columnInPR
-                    await projects.moveCard({
-                        card_id,
-                        position: 'top',
-                        column_id,
-                    })
-                }
+                const {
+                    TO_TRIAGE: columnInTriage,
+                    TO_DO: columnToDo,
+                    TO_PR: columnDoing,
+                    IN_PR: columnInPR,
+                } = columns
+    
+                const columnList = filterNull([
+                    columnInTriage,
+                    columnToDo,
+                    columnDoing,
+                ])
+
+                const cards = await flatMapPromise(columnList, column => getCards(github, column))
+                const card = findCard(cards, linkedIssue)
+
+                if (card && columnInPR) await moveCard(github, card, columnInPR)
             }
         } else {
             const body = 'Beep boop. This PR does not have an associated issue!'
