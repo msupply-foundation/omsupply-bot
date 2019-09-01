@@ -181,6 +181,11 @@ const moveCard = (github: GitHubAPI, card: ProjectsListCardsResponseItem, column
     return moveCard(moveCardParams)
 }
 
+const findCard = (cards: ProjectsListCardsResponseItem[], issue: { url: string }) => {
+    const { url } = issue
+    return find(cards, ({ content_url }) => stringEquals(content_url, url))
+}
+
 export = (app: Application) => {
     app.on(['pull_request.opened', 'pull_request.reopened'], async (context: Context) => {
         const { github, payload } = context
