@@ -204,6 +204,23 @@ const findCard = (cards: ProjectsListCardsResponseItem[], issue: { url: string }
 }
 
 export = (app: Application) => {
+    app.on('issues.assigned', async (context: Context) => {
+        const { github, payload }: { github: GitHubAPI, payload: { label: { name: string }; issue: { url: string } } } = context
+        const { issue }: { issue: { url: string } } = payload
+        const repoParams: { repo: string, owner: string } = context.issue()
+        const repo: ReposGetResponse = await getRepo(github, repoParams)
+        const repoProject: ProjectsListForRepoResponseItem | undefined = await getProject(github, repo)
+        if (repoProject) {
+            const columns: ColumnMap = await getColumns(github, repoProject)
+            const { TO_TRIAGE: columnToTriage, TO_DO: columnToDo } = columns
+            if ( columnToTriage && columnToDo ) {
+                const cards = await getCards(github, columnToTriage)
+                const card = findCard(cards, issue)
+                if (card) await moveCard(github, card, columnToDo)
+            }
+        }
+    })
+
     app.on('issues.labeled', async (context: Context) => {
         const {
             github,
@@ -220,16 +237,6 @@ export = (app: Application) => {
         if (repoProject && labelColumn) {
             const columns = await getColumns(github, repoProject)
 
-            const {
-                TO_TRIAGE: columnInTriage,
-                TO_DO: columnToDo,
-                TO_PR: columnDoing,
-                IN_PR: columnInPR,
-                TO_TEST: columnToTest,
-                IN_TEST: columnTesting,
-                DONE: columnDone,
-            } = columns
-
             const columnList = filterNull([
                 columns.TO_TRIAGE,
                 columns.TO_DO,
@@ -244,7 +251,6 @@ export = (app: Application) => {
             const card = findCard(cards, issue)
 
             const column = columns[labelColumn]
-
             if (card && column) await moveCard(github, card, column)
         }
     })
@@ -267,13 +273,6 @@ export = (app: Application) => {
             if (repoProject) {
                 const columns = await getColumns(github, repoProject)
 
-                const {
-                    TO_TRIAGE: columnInTriage,
-                    TO_DO: columnToDo,
-                    TO_PR: columnDoing,
-                    IN_PR: columnInPR,
-                } = columns
-    
                 const columnList = filterNull([
                     columns.TO_TRIAGE,
                     columns.TO_DO,
