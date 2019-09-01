@@ -47,6 +47,47 @@ const LABEL_COLUMNS: readonly (readonly [string, string])[] = [['TESTED', 'DONE'
 const regexIssueNumber: RegExp = /\#(\d+)/
 const regexIssueLabel: RegExp = /(.*):/
 
+const distinct = <T>(a: readonly T[]): T[] => Array.from(new Set(a))
+
+const filter = <T>(a: readonly T[], f: (_: T) => boolean): T[] => a.filter(f)
+
+const filterNull = <T>(a: readonly T[]): NonNullable<T>[] => mapNull(filter(a, isNull))
+
+const find = <T>(a: readonly T[], f: (_: T) => boolean): T | undefined => a.find(f) || undefined
+
+const isNull = <T>(v: T): boolean => v != null && v != undefined
+
+const flat = <T>(a: readonly T[][]): T[] => a.flat()
+
+const flatMap = <T, U>(a: readonly T[], f: (v: T, i: number) => U[]): U[] => a.flatMap(f)
+
+const map = <T, U>(a: readonly T[], f: (v: T, i: number) => U): U[] => a.map(f)
+
+const merge = (a: Object[]): Object => reduce(a, (acc: Object, curr: Object) => ({ ...acc, ...curr }))
+
+const mapDistinct = <T, U>(a: readonly T[], f: (_: T) => U): U[] => distinct(map(a, f))
+
+const mapFilter = <T, U>(a: readonly T[], f: (_: T) => U, g: (_: U) => boolean): U[] => filter(map(a, f), g)
+
+const mapFilterNull = <T, U>(a: readonly T[], f: (_: T) => U): NonNullable<U>[] => filterNull(map(a, f))
+
+const mapMerge = <T>(a: readonly T[], f: (_: T) => Object): Object => merge(map(a, f))
+
+const mapNull = <T>(a: readonly T[]): NonNullable<T>[] => map(a, v => v!)
+
+const mapReduce = <T, U>(a: readonly T[], f: (_: T) => U, g: (acc: U, curr: U) => U): U => reduce(map(a, f), g)
+
+const flatMapPromise = async <T, U>(a: readonly T[], f: (_: T) => Promise<U[]>): Promise<U[]> =>
+    Promise.all(map(a, f)).then(flat)
+
+const mapPromise = async <T, U>(a: readonly T[], f: (_: T) => Promise<U>): Promise<U[]> => Promise.all(map(a, f))
+
+const reduce = <T>(a: readonly T[], f: (acc: T, curr: T) => T): T => a.reduce(f)
+
+const zip = <T>(a: readonly T[], b: readonly T[]): [T, T][] => map(a, (v, i) => [v, b[i]])
+
+const stringEquals = (s: string, w: string) => s.toLowerCase() == w.toLowerCase()
+
 // TODO: parse out comments strings.
 const parseIssueNumber = (issueBody: string): string => {
     const matches = issueBody.match(regexIssueNumber)
