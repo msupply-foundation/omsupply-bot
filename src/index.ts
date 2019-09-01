@@ -45,13 +45,19 @@ const LABEL_NAMES: readonly string[] = [
 const LABEL_COLUMNS: readonly (readonly [string, string])[] = [['TESTED', 'DONE'], ['CLOSED', 'DONE']]
 
 const regexIssueNumber: RegExp = /\#(\d+)/
-    const [,result] = match(s, r)
+const regexIssueLabel: RegExp = /(.*):/
 
 // TODO: parse out comments strings.
 const parseIssueNumber = (issueBody: string): string => {
     const matches = issueBody.match(regexIssueNumber)
     const [, issueNumber] = matches || [, '']
     return (issueNumber && issueNumber.toLowerCase()) || ''
+}
+
+const parseIssueLabel = (labelName: string): string => {
+    const matches = labelName.match(regexIssueLabel)
+    const [, issueLabel] = matches || [, '']
+    return (issueLabel && issueLabel.toLowerCase()) || ''
 }
 
 const COLUMN_MAP = new Map<string, string>(zip<string>(COLUMN_NAMES, COLUMN_KEYS))
