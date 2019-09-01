@@ -64,11 +64,11 @@ const COLUMN_MAP = new Map<string, string>(zip<string>(COLUMN_NAMES, COLUMN_KEYS
 const LABEL_MAP = new Map<string, string>(zip<string>(LABEL_NAMES, LABEL_KEYS))
 const LABEL_COLUMN_MAP = new Map<string, string>(LABEL_COLUMNS)
 
-const COLUMN_NAMES: string[] = [
-    'Issue triage',
-    'To do',
-    'In progress',
-    'In PR',
+const mapLookup = <T, U>(m: Map<T, U>, k: T): U | undefined => m.get(k)
+const getColumn = (columnName: string): string | undefined => mapLookup(COLUMN_MAP, columnName.toLowerCase())
+const getLabel = (labelName: string): string | undefined => mapLookup(LABEL_MAP, labelName.toLowerCase())
+const getLabelColumn = (labelName: string): string | undefined =>
+    mapLookup(LABEL_COLUMN_MAP, getLabel(labelName.toLowerCase()))
     'Needs build testing',
     'In build test',
     'Done',
