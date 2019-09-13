@@ -8,7 +8,7 @@ const events = {
     'issueAssigned': 'issues.assigned',
     'issueLabelled': 'issues.labeled',
     'pullRequestOpened': ['pull_request.opened', 'pull_request.reopened'],
-    'releaseCreated': ['release.created', 'release.edited']
+    releaseCreated: ['release.created', 'release.edited'],
 }
 
 export = (app: Application) => {
