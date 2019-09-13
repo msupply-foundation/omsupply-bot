@@ -24,7 +24,7 @@ import {
     PullRequestPayloadPullRequest,
     GetIssueParams,
     Issue,
-    CreateCommentParams
+    CreateCommentParams,
 } from './types'
 import { ERRORS } from './constants'
 

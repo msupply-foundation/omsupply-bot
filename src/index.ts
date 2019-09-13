@@ -1,13 +1,13 @@
 import { Application } from 'probot'
 
-import issue from './issue';
+import issue from './issue'
 import pullRequest from './pullRequest'
 import release from './release'
 
 const events = {
-    'issueAssigned': 'issues.assigned',
-    'issueLabelled': 'issues.labeled',
-    'pullRequestOpened': ['pull_request.opened', 'pull_request.reopened'],
+    issueAssigned: 'issues.assigned',
+    issueLabelled: 'issues.labeled',
+    pullRequestOpened: ['pull_request.opened', 'pull_request.reopened'],
     releaseCreated: ['release.created', 'release.edited'],
 }
 

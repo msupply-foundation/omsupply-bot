@@ -2,15 +2,7 @@ import { Context } from 'probot'
 import { GitHubAPI } from 'probot/lib/github'
 
 import { filterNull, flatMapPromise } from './functions'
-import {
-    getRepo,
-    getProject,
-    getColumns,
-    getCards,
-    findCard,
-    moveCard,
-    getLabelColumn,
-} from './helpers'
+import { getRepo, getProject, getColumns, getCards, findCard, moveCard, getLabelColumn } from './helpers'
 import {
     Repo,
     Project,
