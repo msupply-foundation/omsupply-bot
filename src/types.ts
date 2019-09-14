@@ -41,3 +41,5 @@ export type MoveCardParams = ProjectsMoveCardParams
 export type IssuePayloadIssue = WebhookPayloadIssuesIssue
 export type LabelPayloadLabel = WebhookPayloadLabelLabel
 export type PullRequestPayloadPullRequest = WebhookPayloadPullRequestPullRequest
+
+export type XMLElement = { parent: XMLElement; name: string; value: string }
