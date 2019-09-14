@@ -8,7 +8,7 @@ const isBranchSpec = (parentXML: XMLElement) => {
     return parentParentName === 'hudson.plugins.git.BranchSpec'
 }
 
-const isTagSpec = (parentXML: XMLElement) => {
+const isRefSpec = (parentXML: XMLElement) => {
     const { parent: parentParentXML } = parentXML
     const { name: parentName } = parentXML
     const { name: parentParentName } = parentParentXML
@@ -17,7 +17,7 @@ const isTagSpec = (parentXML: XMLElement) => {
 
 export const updateBuildSpec = async (tag: string) => {
     const branchSpec: string = `refs/tags/${tag}`
-    const tagSpec: string = `+refs/tags/${tag}:refs/remotes/origin/tags/${tag}`
+    const refSpec: string = ''
 
     const options: object = {
         hostname: 'jenkins.msupply.org',
@@ -29,11 +29,11 @@ export const updateBuildSpec = async (tag: string) => {
         },
     }
 
-    const getOptions: object = { method: 'GET', ...requestOptions }
-    const postOptions: object = { method: 'POST', ...requestOptions }
-
-    const textFn = (value: string, parentElement: object): string =>
-        isBranchSpec(parentElement as XMLElement) ? branchSpec : value
+    const textFn = (value: string, parentElement: object): string => {
+        if (isBranchSpec(parentElement as XMLElement)) return branchSpec
+        if (isRefSpec(parentElement as XMLElement)) return refSpec
+        return value
+    }
 
     const response: string = await get(options)
     const body: string = js2xml(xml2js(response, { textFn }))
