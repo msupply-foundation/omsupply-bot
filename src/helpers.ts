@@ -1,6 +1,6 @@
 import { GitHubAPI } from 'probot/lib/github';
 
-import { COLUMNS, LABELS, LABEL_COLUMNS, REGEX } from './constants';
+import { COLUMNS, LABELS, LABEL_COLUMNS, REGEX, COLUMN_LABEL_NAME } from './constants';
 
 import { zip, map, stringEquals, find, merge, mapFilterNull } from './functions';
 import {
@@ -17,10 +17,18 @@ import {
   UpdateIssueParams,
 } from './types';
 
-export const parseIssueNumber = (issueBody: string): string => {
+export const toCapitalCase = ([head, ...tail]: string)  => head.toUpperCase() + tail.join('').toLowerCase();
+
+export const parsePullRequestIssueNumber = (issueBody: string): string => {
   const matches = issueBody.match(REGEX.ISSUE_NUMBER);
   const [, issueNumber] = matches || [, ''];
   return (issueNumber && issueNumber.toLowerCase()) || '';
+};
+
+export const parseUrlIssueNumber = (issueUrl: string): string => {
+  const matches = issueUrl.match(REGEX.URL_ISSUE_NUMBER)
+  const [, issueNumber] = matches || [, ''];
+  return issueNumber || '';
 };
 
 export const parseIssueLabel = (labelName: string): string => {
@@ -47,12 +55,14 @@ export const createComment = async (github: GitHubAPI, commentParams: CreateComm
   return createComment(commentParams);
 };
 
-export const getCards = async (github: GitHubAPI, column: Column) => {
+export const createColumnLabel = (columnName: string): string => `${toCapitalCase(COLUMN_LABEL_NAME)}: ${columnName}`;
+
+export const getCards = async (github: GitHubAPI, column: Column): Promise<Card[]> => {
   const { projects } = github;
   const { listCards } = projects;
   const { id: column_id } = column;
   const listCardsParams = { column_id };
-  return listCards(listCardsParams).then(({ data }) => data);
+  return listCards(listCardsParams).then(({ data }) => data as Card[]);
 };
 
 export const getColumns = async (github: GitHubAPI, project: Project): Promise<ColumnMap> => {
@@ -102,15 +112,17 @@ export const updateIssue = async (github: GitHubAPI, issueParams: UpdateIssuePar
   return update(issueParams);
 };
 
+export const mapLabelParam = ({ name }: { name: string }) => name;
+export const extractMilestoneParam = ({ number }: { number: number }) => number;
+export const filterColumnLabel = ({ name }: { name: string }): boolean => !RegExp(REGEX.IS_STATUS_LABEL).test(name);
+
 export const updatePullRequest = async (
   github: GitHubAPI,
   linkedIssue: Issue,
   pullRequestParams: GetIssueParams
 ) => {
-  const extractLabelParam = ({ name }: { name: string }) => name;
-  const extractMilestoneParam = ({ number }: { number: number }) => number;
   const { labels: linkedLabels, milestone: linkedMilestone } = linkedIssue;
-  const labelParams = linkedLabels && map(linkedLabels, extractLabelParam);
+  const labelParams = linkedLabels && map(linkedLabels, mapLabelParam);
   const milestoneParam = linkedMilestone && extractMilestoneParam(linkedMilestone);
   const updateParams = { ...pullRequestParams, labels: labelParams, milestone: milestoneParam };
   return updateIssue(github, updateParams);
