@@ -1,8 +1,6 @@
 import { COLUMNS, LABELS, LABEL_COLUMNS, REGEX, COLUMN_LABEL_NAME } from './constants';
-
 import { zip, stringEquals, find, merge, mapFilterNull } from './functions';
-import { Project, ColumnMap, Card } from './types';
-import { ProjectsListColumnsResponseItem } from '@octokit/rest';
+import { Project, ColumnMap, Card, Columns } from './types';
 
 export const toCapitalCase = ([head, ...tail]: string) =>
   head.toUpperCase() + tail.join('').toLowerCase();
@@ -40,7 +38,7 @@ export const getLabel = (labelName: string): string | undefined =>
 export const getLabelColumn = (labelName: string): string | undefined =>
   mapLookup(LABEL_COLUMN_MAP, getLabel(parseIssueLabel(labelName).toLowerCase()));
 
-export const getColumnsMap = (columns: ProjectsListColumnsResponseItem[]): ColumnMap =>
+export const getColumnsMap = (columns: Columns): ColumnMap =>
   merge(
     mapFilterNull(columns, column => {
       const { name } = column;

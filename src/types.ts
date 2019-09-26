@@ -76,7 +76,7 @@ export type LabelPayload = WebhookPayloadLabel & { label: Label };
 export type RepositoryPayload = PayloadRepository;
 export type IssueLabelPayload = IssuePayload & LabelPayload;
 export type PullRequestPayload = WebhookPayloadPullRequest & { pull_request: PullRequest };
-export type ProjectCardPayload = WebhookPayloadProjectCard;
+export type ProjectCardPayload = WebhookPayloadProjectCard & { project_card: Card };
 
 export type GetRepoParams = ReposGetParams;
 export type GetIssueParams = IssuesGetParams;
