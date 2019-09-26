@@ -9,7 +9,7 @@ import {
   getCards,
   findCard,
   moveCard,
-  parseIssueNumber,
+  parsePullRequestIssueNumber,
   getIssue,
   updatePullRequest,
   createComment,
@@ -34,7 +34,7 @@ export const opened = async (context: Context) => {
   const { body }: { body: string } = pull_request;
   const issueParams: GetIssueParams = context.issue();
   const repo: Repo = await getRepo(github, issueParams);
-  const issueNumber: number = parseInt(parseIssueNumber(body));
+  const issueNumber: number = parseInt(parsePullRequestIssueNumber(body));
 
   if (issueNumber && repo) {
     const linkedIssueParams: GetIssueParams = { ...issueParams, number: issueNumber };

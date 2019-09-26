@@ -11,6 +11,9 @@ export const COLUMNS: { [index: string]: string[] } = {
   ],
 };
 
+export const COLUMN_LABEL_KEY = 'STATUS';
+export const COLUMN_LABEL_NAME = 'status';
+
 export const LABELS: { [index: string]: string[] } = {
   KEYS: [
     'BUG',
@@ -25,6 +28,7 @@ export const LABELS: { [index: string]: string[] } = {
     'IN_TEST',
     'TESTED',
     'CLOSED',
+    COLUMN_LABEL_KEY
   ],
   NAMES: [
     'bug',
@@ -39,6 +43,7 @@ export const LABELS: { [index: string]: string[] } = {
     'build testing',
     'build tested',
     'closed',
+    COLUMN_LABEL_NAME
   ],
 };
 
@@ -48,8 +53,10 @@ export const LABEL_COLUMNS: readonly (readonly [string, string])[] = [
 ];
 
 export const REGEX: { [index: string]: RegExp } = {
-  ISSUE_NUMBER: /\#(\d+)/,
   ISSUE_LABEL: /(.*):/,
+  PR_ISSUE_NUMBER: /\#(\d+)/,
+  URL_ISSUE_NUMBER: /.*\/(\d+)/,
+  IS_STATUS_LABEL: new RegExp(`${COLUMN_LABEL_NAME}:.*`,'i'),
 };
 
 export const ERRORS: { [index: string]: string } = {
