@@ -3,13 +3,10 @@ import { GitHubAPI } from 'probot/lib/github';
 
 import { filterNull, flatMapPromise } from './functions';
 import {
-  getRepo,
-  getProject,
-  getColumns,
-  getCards,
   findCard,
-  moveCard,
   getLabelColumn,
+  findProject,
+  getColumnsMap,
 } from './helpers';
 import {
   Repo,
@@ -19,55 +16,107 @@ import {
   Column,
   IssuePayload,
   IssueLabelPayload,
-  IssuePayloadIssue,
-  LabelPayloadLabel,
   GetRepoParams,
+  RepoResponse,
+  ProjectsResponse,
+  Projects,
+  ListColumnsParams,
+  ColumnsResponse,
+  Columns,
+  Cards,
+  CardsResponse,
+  MoveCardParams,
+  Label,
+  Issue,
 } from './types';
 
 export const assigned = async (context: Context) => {
   const { github, payload }: { github: GitHubAPI; payload: IssuePayload } = context;
-  const { issue }: { issue: { url: string } } = payload;
+  const { projects, repos } = github;
+  const { issue }: { issue: Issue } = payload;
   const repoParams: GetRepoParams = context.issue();
-  const repo: Repo = await getRepo(github, repoParams);
-  const repoProject: Project | undefined = await getProject(github, repo);
+  const repoResponse: RepoResponse = await repos.get(repoParams) as RepoResponse;
+  const { data: repo }: { data: Repo } = repoResponse;
+  const { name: repoName, owner: repoOwner } = repo;
+  const { login: ownerName } = repoOwner;
+  const listForRepoParams = { repo: repoName, owner: ownerName };
+  const repoProjectsResponse: ProjectsResponse =
+  await projects.listForRepo(listForRepoParams);
+  const { data: repoProjects }: { data: Projects } = repoProjectsResponse
+  const repoProject: Project | undefined = findProject(repoProjects, repoName);
 
   if (repoProject) {
-    const columns: ColumnMap = await getColumns(github, repoProject);
-    const { TO_TRIAGE: columnToTriage, TO_DO: columnToDo } = columns;
+    const { id: project_id } = repoProject;
+    const listColumnsParams: ListColumnsParams = { project_id };
+    const listColumnsResponse: ColumnsResponse = await projects.listColumns(listColumnsParams);
+    const { data: projectColumns }: { data: Columns } = listColumnsResponse;
+    const columnsMap: ColumnMap = getColumnsMap(projectColumns);
+    const { TO_TRIAGE: columnToTriage, TO_DO: columnToDo } = columnsMap;
 
     if (columnToTriage && columnToDo) {
-      const cards: Card[] = await getCards(github, columnToTriage);
-      const card: Card | undefined = findCard(cards, issue);
-      if (card) await moveCard(github, card, columnToDo);
+        const { id: column_id } = columnToTriage;
+        const listCardsParams = { column_id };
+        const cardsResponse: CardsResponse = await projects.listCards(listCardsParams) as CardsResponse;
+        const { data: cards }: { data: Cards } = cardsResponse;
+        const card: Card | undefined = findCard(cards, issue);
+        if (card) {
+            const { id: card_id } = card;
+            const moveCardParams: MoveCardParams = { card_id, column_id, position: 'top' };
+            await projects.moveCard(moveCardParams);
+        }
     }
   }
 };
 
 export const labelled = async (context: Context) => {
   const { github, payload }: { github: GitHubAPI; payload: IssueLabelPayload } = context;
+  const { projects, repos } = github;
   const repoParams: GetRepoParams = context.issue();
-  const { label, issue }: { label: LabelPayloadLabel; issue: IssuePayloadIssue } = payload;
+  const { label, issue }: { label: Label; issue: Issue } = payload;
   const { name }: { name: string } = label;
-  const repo: Repo = await getRepo(github, repoParams);
-  const repoProject: Project | undefined = await getProject(github, repo);
+  const repoResponse: RepoResponse = await repos.get(repoParams) as RepoResponse;
+  const { data: repo }: { data: Repo } = repoResponse;
+  const { name: repoName, owner: repoOwner } = repo;
+  const { login: ownerName } = repoOwner;
+  const listForRepoParams = { repo: repoName, owner: ownerName };
+  const repoProjectsResponse: ProjectsResponse =
+  await projects.listForRepo(listForRepoParams);
+  const { data: repoProjects }: { data: Projects } = repoProjectsResponse
+  const repoProject: Project | undefined = findProject(repoProjects, repoName);
   const labelColumn: string | undefined = getLabelColumn(name);
 
   if (repoProject && labelColumn) {
-    const columns: ColumnMap = await getColumns(github, repoProject);
+    const { id: project_id } = repoProject;
+    const listColumnsParams: ListColumnsParams = { project_id };
+    const listColumnsResponse: ColumnsResponse = await projects.listColumns(listColumnsParams);
+    const { data: projectColumns }: { data: Columns } = listColumnsResponse;
+    const columnsMap: ColumnMap = getColumnsMap(projectColumns);
     const columnList: Column[] = filterNull([
-      columns.TO_TRIAGE,
-      columns.TO_DO,
-      columns.DOING,
-      columns.IN_PR,
-      columns.TO_TEST,
-      columns.TESTING,
-      columns.DONE,
+        columnsMap.TO_TRIAGE,
+        columnsMap.TO_DO,
+        columnsMap.DOING,
+        columnsMap.IN_PR,
+        columnsMap.TO_TEST,
+        columnsMap.TESTING,
+        columnsMap.DONE,
     ]);
 
-    const cards: Card[] = await flatMapPromise(columnList, column => getCards(github, column));
+    const cards: Card[] = await flatMapPromise(columnList, async column => {
+        const { id: column_id } = column;
+        const listCardsParams = { column_id };
+        const cardsResponse: CardsResponse = await projects.listCards(listCardsParams) as CardsResponse;
+        const { data: cards }: { data: Cards } = cardsResponse;
+        return cards;
+    });
+
     const card: Card | undefined = findCard(cards, issue);
-    const column: Column = columns[labelColumn];
-    if (card && column) await moveCard(github, card, column);
+    const column: Column = columnsMap[labelColumn];
+    if (card && column) {
+        const { id: column_id } = column;
+        const { id: card_id } = card;
+        const moveCardParams: MoveCardParams = { card_id, column_id, position: 'top' };
+        await projects.moveCard(moveCardParams);
+    }
   }
 };
 

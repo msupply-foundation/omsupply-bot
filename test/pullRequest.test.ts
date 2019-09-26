@@ -8,7 +8,7 @@ import {
   pullRequestOpenedWithoutIssue,
   pullRequestOpenedWithIssue
 } from './fixtures/pullRequest';
-import { parseIssueNumber } from '../src/helpers';
+import { parsePullRequestIssueNumber } from '../src/helpers';
 
 nock.disableNetConnect();
 
@@ -74,7 +74,7 @@ describe('pull request opened', () => {
 
     // Test bot correctly parses linked issue number.
     const { number: issueNumber } = pullRequestLinkedIssue;
-    expect(parseInt(parseIssueNumber(pullRequestBody))).toEqual(issueNumber);
+    expect(parseInt(parsePullRequestIssueNumber(pullRequestBody))).toEqual(issueNumber);
 
     // Test bot makes GET request for linked issue.
     nock('https://api.github.com')
