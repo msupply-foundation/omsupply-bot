@@ -30,10 +30,11 @@ import { ERRORS } from './constants';
 
 export const opened = async (context: Context) => {
   const { github, payload }: { github: GitHubAPI; payload: PullRequestPayload } = context;
+  const { repos } = github;
   const { pull_request }: { pull_request: PullRequestPayloadPullRequest } = payload;
   const { body }: { body: string } = pull_request;
   const issueParams: GetIssueParams = context.issue();
-  const repo: Repo = await getRepo(github, issueParams);
+  const repo: Repo = await repos.get(issueParams).then(({ data }) => data);
   const issueNumber: number = parseInt(parsePullRequestIssueNumber(body));
 
   if (issueNumber && repo) {

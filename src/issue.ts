@@ -3,7 +3,6 @@ import { GitHubAPI } from 'probot/lib/github';
 
 import { filterNull, flatMapPromise } from './functions';
 import {
-  getRepo,
   getProject,
   getColumns,
   getCards,
@@ -26,9 +25,10 @@ import {
 
 export const assigned = async (context: Context) => {
   const { github, payload }: { github: GitHubAPI; payload: IssuePayload } = context;
+  const { repos } = github;
   const { issue }: { issue: { url: string } } = payload;
   const repoParams: GetRepoParams = context.issue();
-  const repo: Repo = await getRepo(github, repoParams);
+  const repo: Repo = await repos.get(repoParams).then(({ data }) => data);
   const repoProject: Project | undefined = await getProject(github, repo);
 
   if (repoProject) {
@@ -45,10 +45,11 @@ export const assigned = async (context: Context) => {
 
 export const labelled = async (context: Context) => {
   const { github, payload }: { github: GitHubAPI; payload: IssueLabelPayload } = context;
+  const { repos } = github;
   const repoParams: GetRepoParams = context.issue();
   const { label, issue }: { label: LabelPayloadLabel; issue: IssuePayloadIssue } = payload;
   const { name }: { name: string } = label;
-  const repo: Repo = await getRepo(github, repoParams);
+  const repo: Repo = await repos.get(repoParams).then(({ data }) => data);
   const repoProject: Project | undefined = await getProject(github, repo);
   const labelColumn: string | undefined = getLabelColumn(name);
 

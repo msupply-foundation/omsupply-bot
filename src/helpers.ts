@@ -12,7 +12,6 @@ import {
   Column,
   Card,
   MoveCardParams,
-  GetRepoParams,
   CreateCommentParams,
   UpdateIssueParams,
 } from './types';
@@ -98,12 +97,6 @@ export const getProject = async (github: GitHubAPI, repo: Repo) => {
     stringEquals(projectName, repoName);
   const findRepoProject = ({ data }: { data: Project[] }) => find(data, isRepoProject);
   return listForRepo(listForRepoParams).then(findRepoProject);
-};
-
-export const getRepo = async (github: GitHubAPI, repoParams: GetRepoParams) => {
-  const { repos } = github;
-  const { get } = repos;
-  return get(repoParams).then(({ data }) => data);
 };
 
 export const updateIssue = async (github: GitHubAPI, issueParams: UpdateIssueParams) => {
