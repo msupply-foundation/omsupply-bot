@@ -1,4 +1,4 @@
-import { COLUMNS, LABELS, LABEL_COLUMNS, REGEX, COLUMN_LABEL_NAME } from './constants';
+import { COLUMNS, LABELS, LABEL_COLUMN, LABEL_COLUMNS, REGEX } from './constants';
 import { zip, stringEquals, find, merge, mapFilterNull } from './functions';
 import { Project, ColumnMap, Card, Columns } from './types';
 
@@ -56,11 +56,11 @@ export const findCard = (cards: Card[], issue: { url: string }) => {
 };
 
 export const createColumnLabel = (columnName: string): string =>
-  `${toCapitalCase(COLUMN_LABEL_NAME)}: ${columnName}`;
+  `${toCapitalCase(LABEL_COLUMN.NAME)}: ${columnName}`;
 
 export const mapLabelParam = ({ name }: { name: string }) => name;
 
 export const getMilestoneParam = ({ number }: { number: number }) => number;
 
 export const filterColumnLabel = ({ name }: { name: string }): boolean =>
-  !RegExp(REGEX.IS_STATUS_LABEL).test(name);
+  !REGEX.IS_STATUS_LABEL.test(name);
