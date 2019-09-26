@@ -7,9 +7,6 @@ export const created = async (context: Context) => {
   const { payload }: { github: GitHubAPI; payload: WebhookPayloadRelease } = context;
   const { release }: { release: WebhookPayloadReleaseRelease } = payload;
   const { tag_name: buildTag }: { tag_name: string } = release;
-
-  console.log(buildTag);
-
   await updateBuildSpec(buildTag);
 };
 
