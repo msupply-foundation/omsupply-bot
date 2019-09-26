@@ -50,13 +50,15 @@ export type CardsResponse = Response<Cards>;
 export type PullRequestResponse = Response<PullRequest>;
 
 export type Repo = ReposGetResponse & PayloadRepository;
-export type Issue = IssuesGetResponse & WebhookPayloadIssuesIssue
-export type Label = IssuesGetResponseLabelsItem & WebhookPayloadLabelLabel & WebhookPayloadIssuesIssueLabelsItem
+export type Issue = IssuesGetResponse & WebhookPayloadIssuesIssue;
+export type Label = IssuesGetResponseLabelsItem &
+  WebhookPayloadLabelLabel &
+  WebhookPayloadIssuesIssueLabelsItem;
 export type Milestone = IssuesGetResponseMilestone & WebhookPayloadIssuesIssueMilestone;
-export type Project = ProjectsListForRepoResponseItem & WebhookPayloadProjectProject
-export type Column = ProjectsListColumnsResponseItem & WebhookPayloadProjectColumnProjectColumn
-export type Card = ProjectsListCardsResponseItem & WebhookPayloadProjectCardProjectCard
-export type PullRequest = PullRequestsListResponseItem & WebhookPayloadPullRequestPullRequest
+export type Project = ProjectsListForRepoResponseItem & WebhookPayloadProjectProject;
+export type Column = ProjectsListColumnsResponseItem & WebhookPayloadProjectColumnProjectColumn;
+export type Card = ProjectsListCardsResponseItem & WebhookPayloadProjectCardProjectCard;
+export type PullRequest = PullRequestsListResponseItem & WebhookPayloadPullRequestPullRequest;
 
 export type Repos = Array<Repo>;
 export type Issues = Array<Issue>;
@@ -75,7 +77,7 @@ export type RepositoryPayload = PayloadRepository;
 export type IssueLabelPayload = IssuePayload & LabelPayload;
 export type PullRequestPayload = WebhookPayloadPullRequest & { pull_request: PullRequest };
 export type ProjectCardPayload = WebhookPayloadProjectCard;
- 
+
 export type GetRepoParams = ReposGetParams;
 export type GetIssueParams = IssuesGetParams;
 export type GetColumnParams = ProjectsGetColumnParams;

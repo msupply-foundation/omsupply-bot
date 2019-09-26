@@ -1,14 +1,11 @@
 import { COLUMNS, LABELS, LABEL_COLUMNS, REGEX, COLUMN_LABEL_NAME } from './constants';
 
 import { zip, stringEquals, find, merge, mapFilterNull } from './functions';
-import {
-  Project,
-  ColumnMap,
-  Card,
-} from './types';
+import { Project, ColumnMap, Card } from './types';
 import { ProjectsListColumnsResponseItem } from '@octokit/rest';
 
-export const toCapitalCase = ([head, ...tail]: string)  => head.toUpperCase() + tail.join('').toLowerCase();
+export const toCapitalCase = ([head, ...tail]: string) =>
+  head.toUpperCase() + tail.join('').toLowerCase();
 
 export const parsePullRequestIssueNumber = (issueBody: string): string => {
   const matches = issueBody.match(REGEX.PR_ISSUE_NUMBER);
@@ -17,7 +14,7 @@ export const parsePullRequestIssueNumber = (issueBody: string): string => {
 };
 
 export const parseUrlIssueNumber = (issueUrl: string): string => {
-  const matches = issueUrl.match(REGEX.URL_ISSUE_NUMBER)
+  const matches = issueUrl.match(REGEX.URL_ISSUE_NUMBER);
   const [, issueNumber] = matches || [, ''];
   return issueNumber || '';
 };
@@ -60,12 +57,12 @@ export const findCard = (cards: Card[], issue: { url: string }) => {
   return find(cards, ({ content_url }) => stringEquals(content_url, url));
 };
 
-export const createColumnLabel = (columnName: string): string => `${toCapitalCase(COLUMN_LABEL_NAME)}: ${columnName}`;
+export const createColumnLabel = (columnName: string): string =>
+  `${toCapitalCase(COLUMN_LABEL_NAME)}: ${columnName}`;
 
 export const mapLabelParam = ({ name }: { name: string }) => name;
 
 export const getMilestoneParam = ({ number }: { number: number }) => number;
 
-export const filterColumnLabel = ({ name }: { name: string }): boolean => !RegExp(REGEX.IS_STATUS_LABEL).test(name);
-
-
+export const filterColumnLabel = ({ name }: { name: string }): boolean =>
+  !RegExp(REGEX.IS_STATUS_LABEL).test(name);

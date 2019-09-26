@@ -3,7 +3,7 @@ import { Application } from 'probot';
 import pullRequest from './pullRequest';
 
 const events = {
-  pullRequestOpened: ['pull_request.opened', 'pull_request.reopened']
+  pullRequestOpened: ['pull_request.opened', 'pull_request.reopened'],
 };
 
 export = (app: Application) => {

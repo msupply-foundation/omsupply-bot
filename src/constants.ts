@@ -28,7 +28,7 @@ export const LABELS: { [index: string]: string[] } = {
     'IN_TEST',
     'TESTED',
     'CLOSED',
-    COLUMN_LABEL_KEY
+    COLUMN_LABEL_KEY,
   ],
   NAMES: [
     'bug',
@@ -43,7 +43,7 @@ export const LABELS: { [index: string]: string[] } = {
     'build testing',
     'build tested',
     'closed',
-    COLUMN_LABEL_NAME
+    COLUMN_LABEL_NAME,
   ],
 };
 
@@ -56,7 +56,7 @@ export const REGEX: { [index: string]: RegExp } = {
   ISSUE_LABEL: /(.*):/,
   PR_ISSUE_NUMBER: /\#(\d+)/,
   URL_ISSUE_NUMBER: /.*\/(\d+)/,
-  IS_STATUS_LABEL: new RegExp(`${COLUMN_LABEL_NAME}:.*`,'i'),
+  IS_STATUS_LABEL: new RegExp(`${COLUMN_LABEL_NAME}:.*`, 'i'),
 };
 
 export const ERRORS: { [index: string]: string } = {

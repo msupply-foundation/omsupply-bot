@@ -44,7 +44,7 @@ export const opened = async (context: Context) => {
   const { body: pullRequestBody }: { body: string } = pullRequest;
 
   const issueParams: GetIssueParams = context.issue();
-  const repoResponse: RepoResponse = await repos.get(issueParams) as RepoResponse;
+  const repoResponse: RepoResponse = (await repos.get(issueParams)) as RepoResponse;
   const { data: repo }: { data: Repo } = repoResponse;
   const { name: repoName, owner: repoOwner } = repo;
   const { login: ownerName } = repoOwner;
@@ -52,11 +52,13 @@ export const opened = async (context: Context) => {
 
   if (issueNumber && repo) {
     const linkedIssueParams: GetIssueParams = { ...issueParams, number: issueNumber };
-    const linkedIssueResponse: IssueResponse = await issues.get(linkedIssueParams) as IssueResponse;
+    const linkedIssueResponse: IssueResponse = (await issues.get(
+      linkedIssueParams
+    )) as IssueResponse;
     const { data: linkedIssue }: { data: Issue } = linkedIssueResponse;
 
     // Update pull request labels.
-    const { labels: linkedLabels}: { labels: Labels } = linkedIssue;
+    const { labels: linkedLabels }: { labels: Labels } = linkedIssue;
     const labelParams: string[] = linkedLabels && map(linkedLabels, mapLabelParam);
     const updateLabelParams: UpdateIssueParams = { ...issueParams, labels: labelParams };
     await issues.update(updateLabelParams);
@@ -64,13 +66,13 @@ export const opened = async (context: Context) => {
     // Update pull request milestone.
     const { milestone: linkedMilestone }: { milestone: Milestone } = linkedIssue;
     const milestoneParam: number = linkedMilestone && getMilestoneParam(linkedMilestone);
-    const updateMilestoneParams: UpdateIssueParams = {...issueParams, milestone: milestoneParam };
+    const updateMilestoneParams: UpdateIssueParams = { ...issueParams, milestone: milestoneParam };
     await issues.update(updateMilestoneParams);
 
     // Update issue card.
     const listForRepoParams: ListProjectsParams = { repo: repoName, owner: ownerName };
     const repoProjectsResponse: ProjectsResponse = await projects.listForRepo(listForRepoParams);
-    const { data: repoProjects }: { data: Projects } = repoProjectsResponse
+    const { data: repoProjects }: { data: Projects } = repoProjectsResponse;
     const repoProject: Project | undefined = findProject(repoProjects, repoName);
 
     if (repoProject) {
@@ -79,12 +81,18 @@ export const opened = async (context: Context) => {
       const listColumnsResponse: ColumnsResponse = await projects.listColumns(listColumnsParams);
       const { data: projectColumns }: { data: Columns } = listColumnsResponse;
       const columnsMap: ColumnMap = getColumnsMap(projectColumns);
-      const columnList: Columns = filterNull([columnsMap.TO_TRIAGE, columnsMap.TO_DO, columnsMap.DOING]);
+      const columnList: Columns = filterNull([
+        columnsMap.TO_TRIAGE,
+        columnsMap.TO_DO,
+        columnsMap.DOING,
+      ]);
       const { IN_PR: columnInPR } = columnsMap;
       const cards: Cards = await flatMapPromise(columnList, async column => {
         const { id: column_id } = column;
         const listCardsParams = { column_id };
-        const cardsResponse: CardsResponse = await projects.listCards(listCardsParams) as CardsResponse;
+        const cardsResponse: CardsResponse = (await projects.listCards(
+          listCardsParams
+        )) as CardsResponse;
         const { data: cards }: { data: Cards } = cardsResponse;
         return cards;
       });
@@ -98,7 +106,7 @@ export const opened = async (context: Context) => {
       }
     }
   } else {
-    // Create comment if no linked issue found. 
+    // Create comment if no linked issue found.
     const commentParams: CreateCommentParams = { ...issueParams, body: ERRORS.NO_LINKED_ISSUE };
     await issues.createComment(commentParams);
   }
