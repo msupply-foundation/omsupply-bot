@@ -26,6 +26,8 @@ export const mapFilter = <T, U>(a: readonly T[], f: (_: T) => U, g: (_: U) => bo
 export const mapFilterNull = <T, U>(a: readonly T[], f: (_: T) => U): NonNullable<U>[] =>
   filterNull(map(a, f));
 
+export const mapLookup = <T, U>(m: Map<T, U>, k: T): U | undefined => m.get(k);
+
 export const mapMerge = <T>(a: readonly T[], f: (_: T) => Object): Object => merge(map(a, f));
 
 export const mapNull = <T>(a: readonly T[]): NonNullable<T>[] => map(a, v => v!);

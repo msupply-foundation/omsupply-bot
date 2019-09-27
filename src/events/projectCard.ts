@@ -1,8 +1,8 @@
 import { Context } from "probot";
 import { GitHubAPI } from "probot/lib/github";
 
-import { ProjectCardPayload, Card } from "./types";
-import { parseUrlIssueNumber, mapLabelParam, filterColumnLabel, createColumnLabel } from "./helpers";
+import { ProjectCardPayload, Card } from "../types";
+import { parseUrlIssueNumber, mapLabelParam, filterColumnLabel, createColumnLabel } from "../helpers/helpers";
 
 export const moved = async (context: Context) => {
     const { github, payload }: { github: GitHubAPI; payload: ProjectCardPayload } = context;

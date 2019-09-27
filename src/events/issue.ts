@@ -1,8 +1,8 @@
 import { Context } from 'probot';
 import { GitHubAPI } from 'probot/lib/github';
 
-import { filterNull, flatMapPromise } from './functions';
-import { findCard, getLabelColumn, findProject, getColumnsMap } from './helpers';
+import { filterNull, flatMapPromise } from '../helpers/functions';
+import { findCard, getLabelColumn, findProject, getColumnsMap } from '../helpers/helpers';
 import {
   Repo,
   Project,
@@ -23,7 +23,7 @@ import {
   MoveCardParams,
   Label,
   Issue,
-} from './types';
+} from '../types';
 
 export const assigned = async (context: Context) => {
   const { github, payload }: { github: GitHubAPI; payload: IssuePayload } = context;

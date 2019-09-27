@@ -1,5 +1,5 @@
 import { js2xml, xml2js } from 'xml-js';
-import { XMLElement } from './types';
+import { XMLElement } from '../types';
 import { get, post } from './https';
 
 const isBranchSpec = (parentXML: XMLElement) => {

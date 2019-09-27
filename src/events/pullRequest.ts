@@ -1,8 +1,8 @@
 import { Context } from 'probot';
 import { GitHubAPI } from 'probot/lib/github';
 
-import { ERRORS } from './constants';
-import { filterNull, flatMapPromise, map } from './functions';
+import { ERRORS } from '../constants';
+import { filterNull, flatMapPromise, map } from '../helpers/functions';
 import {
   findCard,
   parsePullRequestIssueNumber,
@@ -10,7 +10,7 @@ import {
   mapLabelParam,
   getMilestoneParam,
   getColumnsMap,
-} from './helpers';
+} from '../helpers/helpers';
 import {
   Repo,
   Project,
@@ -35,7 +35,7 @@ import {
   Cards,
   Projects,
   CardsResponse,
-} from './types';
+} from '../types';
 
 export const opened = async (context: Context) => {
   const { github, payload }: { github: GitHubAPI; payload: PullRequestPayload } = context;
