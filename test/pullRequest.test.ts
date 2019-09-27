@@ -1,13 +1,10 @@
 import { Probot } from 'probot';
-import nock from 'nock';
+import nock, { isDone } from 'nock';
 
 import App from '../src';
 import { ERRORS } from '../src/constants';
 
-import { 
-  pullRequestOpenedWithoutIssue,
-  pullRequestOpenedWithIssue
-} from './fixtures/pullRequest';
+import { pullRequestOpenedWithoutIssue, pullRequestOpenedWithIssue } from './fixtures/pullRequest';
 import { parsePullRequestIssueNumber } from '../src/helpers';
 
 nock.disableNetConnect();
@@ -21,7 +18,7 @@ describe('pull request opened', () => {
     app.app = () => 'test';
   });
 
-  test('create a comment if a pull request has no linked issue', async done => {
+  test('create a comment if a pull request has no linked issue', async () => {
     const { payload: pullRequestOpenedNoIssuePayload } = pullRequestOpenedWithoutIssue;
     const {
       pull_request: pullRequest,
@@ -32,13 +29,13 @@ describe('pull request opened', () => {
     const { login: repositoryOwnerName } = repositoryOwner;
 
     // Test bot makes GET request for PR repo.
-    nock('https://api.github.com')
+    const getPullRequestRepo = nock('https://api.github.com')
       .get(`/repos/${repositoryOwnerName}/${repositoryName}?number=${pullRequestNumber}`)
       .reply(200, pullRequestRepository)
       .log(console.log);
 
     // Test bot makes POST request to update PR comment.
-    nock('https://api.github.com')
+    const updatePullRequestComment = nock('https://api.github.com')
       .post(
         `/repos/${repositoryOwnerName}/${repositoryName}/issues/${pullRequestNumber}/comments`,
         (payload: object) => {
@@ -49,15 +46,18 @@ describe('pull request opened', () => {
       .reply(200)
       .log(console.log);
 
-    // Pass test if all mocked APIs are called and bot posts correct error comment to PR.
-    done(nock.isDone())
-
     // Send bot a webhook event for a new PR without a linked issue.
     await probot.receive({ name: 'pull_request', payload: pullRequestOpenedNoIssuePayload });
+
+    getPullRequestRepo.done();
+    updatePullRequestComment.done();
   });
 
-  test('copy labels if pull request has a linked issue', async done => {
-    const { payload: pullRequestOpenedWithIssuePayload, issue: pullRequestLinkedIssue } = pullRequestOpenedWithIssue;
+  test('copy labels if pull request has a linked issue', async () => {
+    const {
+      payload: pullRequestOpenedWithIssuePayload,
+      issue: pullRequestLinkedIssue,
+    } = pullRequestOpenedWithIssue;
     const {
       pull_request: pullRequest,
       repository: pullRequestRepository,
@@ -67,7 +67,7 @@ describe('pull request opened', () => {
     const { login: repositoryOwnerName } = repositoryOwner;
 
     // Test bot makes GET request for PR repo.
-    nock('https://api.github.com')
+    const getPullRequestRepo = nock('https://api.github.com')
       .get(`/repos/${repositoryOwnerName}/${repositoryName}?number=${pullRequestNumber}`)
       .reply(200, pullRequestRepository)
       .log(console.log);
@@ -77,27 +77,36 @@ describe('pull request opened', () => {
     expect(parseInt(parsePullRequestIssueNumber(pullRequestBody))).toEqual(issueNumber);
 
     // Test bot makes GET request for linked issue.
-    nock('https://api.github.com')
-    .get(`/repos/${repositoryOwnerName}/${repositoryName}/issues/${issueNumber}`)
-    .reply(200)
-    .log(console.log);
+    const getLinkedIssue = nock('https://api.github.com')
+      .get(`/repos/${repositoryOwnerName}/${repositoryName}/issues/${issueNumber}`)
+      .reply(200)
+      .log(console.log);
 
-    // Test bot makes empty PATCH request to update PR.
-    nock('https://api.github.com')
-    .patch(`/repos/${repositoryOwnerName}/${repositoryName}/issues/${pullRequestNumber}`)
-    .reply(200)
-    .log(console.log);
+    // Test bot makes empty PATCH request to update PR labels.
+    const updatePullRequestLabels = nock('https://api.github.com')
+      .patch(`/repos/${repositoryOwnerName}/${repositoryName}/issues/${pullRequestNumber}`, {})
+      .reply(200)
+      .log(console.log);
+
+    // Test bot makes empty PATCH request to update PR milestone.
+    const updatePullRequestMilestone = nock('https://api.github.com')
+      .patch(`/repos/${repositoryOwnerName}/${repositoryName}/issues/${pullRequestNumber}`, {})
+      .reply(200)
+      .log(console.log);
 
     // Text bot makes GET request for project boards.
-    nock('https://api.github.com')
-    .get(`/repos/${repositoryOwnerName}/${repositoryName}/projects`)
-    .reply(200, [])
-    .log(console.log);
-
-    // Pass test if all mocked APIs are called.
-    done(nock.isDone());
+    const getProjectBoards = nock('https://api.github.com')
+      .get(`/repos/${repositoryOwnerName}/${repositoryName}/projects`)
+      .reply(200, [])
+      .log(console.log);
 
     // Send bot a webhook event for a new PR without a linked issue.
     await probot.receive({ name: 'pull_request', payload: pullRequestOpenedWithIssuePayload });
+
+    getPullRequestRepo.done();
+    getLinkedIssue.done();
+    updatePullRequestLabels.done();
+    updatePullRequestMilestone.done();
+    getProjectBoards.done();
   });
 });
