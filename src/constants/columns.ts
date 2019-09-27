@@ -1,3 +1,5 @@
+import { zip } from "../helpers/functions";
+
 export const COLUMN_TRIAGE = {
   KEY: 'TO_TRIAGE',
   NAME: 'issue triage',
@@ -53,3 +55,5 @@ export const COLUMNS: { [index: string]: string[] } = {
     COLUMN_DONE.NAME,
   ],
 };
+
+export const COLUMN_MAP = new Map<string, string>(zip<string>(COLUMNS.NAMES, COLUMNS.KEYS));

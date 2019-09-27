@@ -8,6 +8,7 @@ import {
   WebhookPayloadProjectProject,
   WebhookPayloadProjectColumnProjectColumn,
   WebhookPayloadProjectCardProjectCard,
+  WebhookPayloadReleaseRelease,
 } from '@octokit/webhooks';
 import {
   PullRequestsListResponseItem,
@@ -19,6 +20,7 @@ import {
   ProjectsListColumnsResponseItem,
   ProjectsListCardsResponseItem,
   Response,
+  ReposGetReleaseResponse,
 } from '@octokit/rest';
 
 export type RepoResponse = Response<Repo>;
@@ -31,6 +33,7 @@ export type ColumnsResponse = Response<Columns>;
 export type CardResponse = Response<Card>;
 export type CardsResponse = Response<Cards>;
 export type PullRequestResponse = Response<PullRequest>;
+export type ReleaseResponse = Response<Release>;
 
 export type Repo = ReposGetResponse & PayloadRepository;
 export type Issue = IssuesGetResponse & WebhookPayloadIssuesIssue;
@@ -42,6 +45,7 @@ export type Project = ProjectsListForRepoResponseItem & WebhookPayloadProjectPro
 export type Column = ProjectsListColumnsResponseItem & WebhookPayloadProjectColumnProjectColumn;
 export type Card = ProjectsListCardsResponseItem & WebhookPayloadProjectCardProjectCard;
 export type PullRequest = PullRequestsListResponseItem & WebhookPayloadPullRequestPullRequest;
+export type Release = ReposGetReleaseResponse & WebhookPayloadReleaseRelease;
 
 export type Repos = Array<Repo>;
 export type Issues = Array<Issue>;
@@ -51,5 +55,6 @@ export type Projects = Array<Project>;
 export type Columns = Array<Column>;
 export type Cards = Array<Card>;
 export type PullRequests = Array<PullRequest>;
+export type Releases = Array<Release>;
 
 export type ColumnMap = { [index: string]: Column };

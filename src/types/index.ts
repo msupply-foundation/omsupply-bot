@@ -4,6 +4,7 @@ export {
   LabelResponse,
   ProjectResponse,
   ProjectsResponse,
+  ReleaseResponse,
   ColumnResponse,
   ColumnsResponse,
   CardResponse,
@@ -18,6 +19,7 @@ export {
   Card,
   PullRequest,
   Repos,
+  Release,
   Issues,
   Labels,
   Milestones,
@@ -46,6 +48,7 @@ export {
   IssueLabelPayload,
   PullRequestPayload,
   ProjectCardPayload,
+  ReleasePayload,
 } from './webhooks';
 
 export { XMLElement } from './xml';

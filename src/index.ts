@@ -1,8 +1,5 @@
 import { Application } from 'probot';
-
-import issue from './issue';
-import pullRequest from './pullRequest';
-import projectCard from './projectCard';
+import { issue, pullRequest, projectCard } from './events';
 
 const events = {
   issueAssigned: 'issues.assigned',

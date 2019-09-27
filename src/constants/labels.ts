@@ -1,4 +1,5 @@
 import { COLUMN_DONE } from './columns';
+import { zip } from '../helpers/functions';
 
 export const LABEL_BUG = {
   KEY: 'BUG',
@@ -65,11 +66,6 @@ export const LABEL_COLUMN = {
   NAME: 'status',
 };
 
-export const LABEL_COLUMNS: readonly (readonly [string, string])[] = [
-  [LABEL_TESTED.KEY, COLUMN_DONE.KEY],
-  [LABEL_CLOSED.KEY, COLUMN_DONE.KEY],
-];
-
 export const LABELS: { [index: string]: string[] } = {
   KEYS: [
     LABEL_BUG.KEY,
@@ -102,3 +98,11 @@ export const LABELS: { [index: string]: string[] } = {
     LABEL_COLUMN.NAME,
   ],
 };
+
+export const LABEL_COLUMNS: readonly (readonly [string, string])[] = [
+  [LABEL_TESTED.KEY, COLUMN_DONE.KEY],
+  [LABEL_CLOSED.KEY, COLUMN_DONE.KEY],
+];
+
+export const LABEL_MAP = new Map<string, string>(zip<string>(LABELS.NAMES, LABELS.KEYS));
+export const LABEL_COLUMN_MAP = new Map<string, string>(LABEL_COLUMNS);
