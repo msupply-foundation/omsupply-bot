@@ -55,5 +55,3 @@ export const COLUMNS: { [index: string]: string[] } = {
     COLUMN_DONE.NAME,
   ],
 };
-
-export const COLUMN_MAP = new Map<string, string>(zip<string>(COLUMNS.NAMES, COLUMNS.KEYS));
