@@ -7,7 +7,6 @@ export {
   COLUMN_IN_TEST,
   COLUMN_DONE,
   COLUMNS,
-  COLUMN_MAP,
 } from './columns';
 export {
   LABEL_BUG,
@@ -25,8 +24,8 @@ export {
   LABEL_COLUMN,
   LABEL_COLUMNS,
   LABELS,
-  LABEL_MAP,
-  LABEL_COLUMN_MAP,
 } from './labels';
 export { ERRORS } from './errors';
 export { REGEX } from './regex';
+
+

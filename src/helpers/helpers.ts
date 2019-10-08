@@ -1,6 +1,10 @@
-import { COLUMN_MAP, LABEL_COLUMN, LABEL_MAP, LABEL_COLUMN_MAP, REGEX } from '../constants';
-import { stringEquals, find, merge, mapFilterNull, mapLookup } from './functions';
+import { COLUMNS, LABEL_COLUMN, REGEX, LABELS, LABEL_COLUMNS } from '../constants';
+import { stringEquals, find, merge, mapFilterNull, mapLookup, zip } from './functions';
 import { Project, ColumnMap, Card, Columns } from '../types';
+
+export const COLUMN_MAP = new Map<string, string>(zip<string>(COLUMNS.NAMES, COLUMNS.KEYS));
+export const LABEL_MAP = new Map<string, string>(zip<string>(LABELS.NAMES, LABELS.KEYS));
+export const LABEL_COLUMN_MAP = new Map<string, string>(LABEL_COLUMNS);
 
 export const createColumnLabel = (columnName: string): string =>
   `${toCapitalCase(LABEL_COLUMN.NAME)}: ${columnName}`;
@@ -16,8 +20,7 @@ export const findCard = (cards: Card[], issue: { url: string }) => {
 export const findProject = (projects: Project[], projectName: string) =>
   find(projects, ({ name }: { name: string }) => stringEquals(name, projectName));
 
-export const getColumn = (columnName: string): string | undefined =>
-  mapLookup(COLUMN_MAP, columnName.toLowerCase());
+export const getColumn = (columnName: string): string | undefined => mapLookup(COLUMN_MAP, columnName.toLowerCase());
 
 export const getColumnsMap = (columns: Columns): ColumnMap =>
   merge(
@@ -28,11 +31,9 @@ export const getColumnsMap = (columns: Columns): ColumnMap =>
     })
   ) as ColumnMap;
 
-export const getLabel = (labelName: string): string | undefined =>
-  mapLookup(LABEL_MAP, labelName.toLowerCase());
+export const getLabel = (labelName: string): string | undefined => mapLookup(LABEL_MAP, labelName.toLowerCase());
 
-export const getLabelColumn = (labelName: string): string | undefined =>
-  mapLookup(LABEL_COLUMN_MAP, getLabel(parseIssueLabel(labelName).toLowerCase()));
+export const getLabelColumn = (labelName: string): string | undefined => mapLookup(LABEL_COLUMN_MAP, getLabel(parseIssueLabel(labelName).toLowerCase()))
 
 export const getMilestoneParam = ({ number }: { number: number }) => number;
 
