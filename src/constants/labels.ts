@@ -104,5 +104,3 @@ export const LABEL_COLUMNS: readonly (readonly [string, string])[] = [
   [LABEL_CLOSED.KEY, COLUMN_DONE.KEY],
 ];
 
-export const LABEL_MAP = new Map<string, string>(zip<string>(LABELS.NAMES, LABELS.KEYS));
-export const LABEL_COLUMN_MAP = new Map<string, string>(LABEL_COLUMNS);
