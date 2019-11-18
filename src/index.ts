@@ -1,5 +1,5 @@
 import { Application } from 'probot';
-import { issue, pullRequest, projectCard } from './events';
+import { issue, pullRequest, projectCard, release } from './events';
 
 const events = {
   issueAssigned: 'issues.assigned',
@@ -13,6 +13,6 @@ export = (app: Application) => {
   app.on(events.issueAssigned, issue.assigned);
   app.on(events.issueLabelled, issue.labelled);
   app.on(events.pullRequestOpened, pullRequest.opened);
-  // app.on(events.releaseCreated, release.created);
+  app.on(events.releaseCreated, release.created);
   app.on(events.projectCardMoved, projectCard.moved);
 };
