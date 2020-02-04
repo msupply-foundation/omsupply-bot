@@ -26,6 +26,7 @@ export {
   createColumnLabel,
   filterColumnLabel,
   findCard,
+  findMilestone,
   findProject,
   getColumn,
   getColumnsMap,

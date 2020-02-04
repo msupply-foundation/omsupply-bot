@@ -10,10 +10,12 @@ export {
   CardResponse,
   CardsResponse,
   PullRequestResponse,
+  MilestonesResponse,
   Repo,
   Issue,
   Label,
   Milestone,
+  Milestones,
   Project,
   Column,
   Card,
@@ -22,7 +24,6 @@ export {
   Release,
   Issues,
   Labels,
-  Milestones,
   Projects,
   Columns,
   Cards,
@@ -39,6 +40,7 @@ export {
   MoveCardParams,
   ListProjectsParams,
   ListColumnsParams,
+  ListMilestonesParams,
 } from './params';
 
 export {

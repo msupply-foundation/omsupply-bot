@@ -4,6 +4,7 @@ import {
   ProjectsGetColumnParams,
   IssuesUpdateParams,
   IssuesCreateCommentParams,
+  IssuesListMilestonesForRepoParams,
   ProjectsMoveCardParams,
   ProjectsListForRepoParams,
   ProjectsListColumnsParams,
@@ -17,3 +18,4 @@ export type CreateCommentParams = IssuesCreateCommentParams;
 export type MoveCardParams = ProjectsMoveCardParams;
 export type ListProjectsParams = ProjectsListForRepoParams;
 export type ListColumnsParams = ProjectsListColumnsParams;
+export type ListMilestonesParams = IssuesListMilestonesForRepoParams;

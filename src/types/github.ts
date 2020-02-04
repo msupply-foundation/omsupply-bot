@@ -16,6 +16,7 @@ import {
   IssuesGetResponse,
   IssuesGetResponseLabelsItem,
   IssuesGetResponseMilestone,
+  IssuesListMilestonesForRepoResponseItem,
   ProjectsListForRepoResponseItem,
   ProjectsListColumnsResponseItem,
   ProjectsListCardsResponseItem,
@@ -34,13 +35,14 @@ export type CardResponse = Response<Card>;
 export type CardsResponse = Response<Cards>;
 export type PullRequestResponse = Response<PullRequest>;
 export type ReleaseResponse = Response<Release>;
+export type MilestonesResponse = Response<Milestones>;
 
 export type Repo = ReposGetResponse & PayloadRepository;
 export type Issue = IssuesGetResponse & WebhookPayloadIssuesIssue;
 export type Label = IssuesGetResponseLabelsItem &
   WebhookPayloadLabelLabel &
   WebhookPayloadIssuesIssueLabelsItem;
-export type Milestone = IssuesGetResponseMilestone & WebhookPayloadIssuesIssueMilestone;
+export type Milestone = IssuesGetResponseMilestone & IssuesListMilestonesForRepoResponseItem & WebhookPayloadIssuesIssueMilestone;
 export type Project = ProjectsListForRepoResponseItem & WebhookPayloadProjectProject;
 export type Column = ProjectsListColumnsResponseItem & WebhookPayloadProjectColumnProjectColumn;
 export type Card = ProjectsListCardsResponseItem & WebhookPayloadProjectCardProjectCard;

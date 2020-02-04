@@ -1,6 +1,6 @@
 import { COLUMNS, LABEL_COLUMN, REGEX, LABELS, LABEL_COLUMNS } from '../constants';
 import { stringEquals, find, merge, mapFilterNull, mapLookup, zip } from './functions';
-import { Project, ColumnMap, Card, Columns } from '../types';
+import { Project, ColumnMap, Card, Columns, Milestones } from '../types';
 
 export const COLUMN_MAP = new Map<string, string>(zip<string>(COLUMNS.NAMES, COLUMNS.KEYS));
 export const LABEL_MAP = new Map<string, string>(zip<string>(LABELS.NAMES, LABELS.KEYS));
@@ -16,6 +16,9 @@ export const findCard = (cards: Card[], issue: { url: string }) => {
   const { url } = issue;
   return find(cards, ({ content_url }) => stringEquals(content_url, url));
 };
+
+export const findMilestone = (milestones: Milestones, buildTag: string) =>
+  find(milestones, ({title}: {title: string}) => stringEquals(title.replace(/\./g, '-').toLowerCase(), buildTag));
 
 export const findProject = (projects: Project[], projectName: string) =>
   find(projects, ({ name }: { name: string }) => stringEquals(name, projectName));

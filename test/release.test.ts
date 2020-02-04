@@ -3,7 +3,7 @@ import nock from 'nock';
 
 import App from '../src';
 
-import { releaseCreated } from './fixtures/release';
+import { releaseCreated, repoMilestones, linkedMilestone, linkedIssues } from './fixtures/release';
 
 nock.disableNetConnect();
 
@@ -16,16 +16,29 @@ describe('release created', () => {
     app.app = () => 'test';
   });
 
-  test('log tag when release is created', async () => {
+  test('List issues with milestone linked to the new release', async () => {
     const { payload: releasePayload } = releaseCreated;
-    const { release: releasePayloadRelease } = releasePayload;
-    const { tag_name: buildTag } = releasePayloadRelease;
+    const { repository: repositoryRelease } = releasePayload;
+    const { name: repositoryName, owner: repositoryOwner } = repositoryRelease;
+    const { login: repositoryOwnerName } = repositoryOwner;
+    const { number: milestoneNumber } = linkedMilestone;
+  
+    // Test bot makes GET request for All milestones from repo.
+    const getMilestones = nock('https://api.github.com')
+    .get(`/repos/${repositoryOwnerName}/${repositoryName}/milestones`)
+    .reply(200, repoMilestones)
+    .log(console.log);
 
-    let log = '';
-    console.log = jest.fn(logString => log += logString);
+    // Test bot makes GET request for Issues linked to a milestone number.
+    const getMilestoneIssues = nock('https://api.github.com')
+    .get(`/repos/${repositoryOwnerName}/${repositoryName}/issues?milestone=${milestoneNumber}`)
+    .reply(200, linkedIssues)
+    .log(console.log);
 
     await probot.receive({ name: 'release', payload: releasePayload });
 
-    expect(log).toBe(buildTag);
+    getMilestones.done();
+    getMilestoneIssues.done();
+
   });
 });
