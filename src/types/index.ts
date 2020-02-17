@@ -36,6 +36,7 @@ export {
   GetIssueParams,
   GetColumnParams,
   UpdateIssueParams,
+  UpdateReleaseParams,
   CreateCommentParams,
   MoveCardParams,
   ListProjectsParams,

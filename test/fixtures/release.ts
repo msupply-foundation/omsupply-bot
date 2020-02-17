@@ -3,7 +3,7 @@ const USER = {
       "login": "sussol",
     }
   }
-  
+
 const REPOSITORY = {
     MSUPPLY: {
       "name": "msupply",
@@ -13,14 +13,17 @@ const REPOSITORY = {
 
 const RELEASE = {
     RELEASE_1: {
-        tag_name: "V1-01-00"
+        tag_name: "V1-01-00",
+        id: 1,
     },
     RELEASE_2: {
-        tag_name: "V1-02-00"
+        tag_name: "V1-02-00",
+        id: 2,
     },
     RELEASE_NEW: {
         tag_name: "V1-03-00",
         target_commitish: "master",
+        id: 3,
         name: "v1.3.0",
         body: "Description of the release",
         draft: false,
@@ -52,41 +55,85 @@ const MILESTONE = {
     },
 }
 
+const LABEL = {
+  BUG_DEVELOPMENT: {
+    "name": "Bug: development"
+  },
+  BUG_PRODUCTION: {
+    "name": "Bug: production"
+  },
+  BUG_UNDEFINED: {
+    "name": "Bug: ????"
+  },
+  CLOSED_INVALID: {
+    "name": "Closed: invalid"
+  },
+  CLOSED_DUPLICATION: {
+    "name": "Closed: duplication"
+  },
+  CLOSED_NOT_NEED: {
+    "name": "Closed: not needed"
+  },
+  FEATURE_EXISTING: {
+    "name": "Feature: existing"
+  },
+  FEATURE_NEW: {
+    "name": "Feature: new"
+  },
+  FEATURE_UNDEFINED: {
+    "name": "Feature: ????"
+  },
+  STATUS_IN_PR: {
+    "name": "Status: In PR"
+  },
+  STATUS_TEST: {
+    "name": "Status: In build test"
+  },
+  STATUS_DONE: {
+    "name": "Status: Done"
+  },
+}
+
 const ISSUE = {
     ISSUE_1: {
         "number": 1,
         "title": "Issue #1",
         "state": "open",
         "user": USER.SUSSOL,
-        "milestone": MILESTONE.MILESTONE_V1_03
+        "milestone": MILESTONE.MILESTONE_V1_03,
+        "labels" : [LABEL.BUG_PRODUCTION, LABEL.STATUS_DONE]
     },
     ISSUE_2: {
         "number": 2,
         "title": "Issue #2",
         "state": "open",
         "user": USER.SUSSOL,
-        "milestone": MILESTONE.MILESTONE_V1_03
+        "milestone": MILESTONE.MILESTONE_V1_03,
+        "labels" : [LABEL.BUG_DEVELOPMENT, LABEL.STATUS_DONE]
     },
     ISSUE_3: {
         "number": 3,
         "title": "Issue #3",
         "state": "closed",
         "user": USER.SUSSOL,
-        "milestone": MILESTONE.MILESTONE_V1_03
+        "milestone": MILESTONE.MILESTONE_V1_03,
+        "labels" : [LABEL.BUG_PRODUCTION, LABEL.STATUS_IN_PR]
     },
     ISSUE_4: {
         "number": 4,
         "title": "Issue #4",
         "state": "closed",
         "user": USER.SUSSOL,
-        "milestone": MILESTONE.MILESTONE_V1_03
+        "milestone": MILESTONE.MILESTONE_V1_03,
+        "labels" : [LABEL.FEATURE_NEW, LABEL.STATUS_TEST]
     },
     ISSUE_5: {
         "number": 5,
         "title": "Issue #5",
         "state": "closed",
         "user": USER.SUSSOL,
-        "milestone": MILESTONE.MILESTONE_V1_03
+        "milestone": MILESTONE.MILESTONE_V1_03,
+        "labels" : [LABEL.FEATURE_EXISTING, LABEL.STATUS_TEST]
     },
     ISSUE_6: {
         "number": 6,

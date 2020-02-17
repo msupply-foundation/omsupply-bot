@@ -18,11 +18,13 @@ describe('release created', () => {
 
   test('List issues with milestone linked to the new release', async () => {
     const { payload: releasePayload } = releaseCreated;
-    const { repository: repositoryRelease } = releasePayload;
+    const { repository: repositoryRelease, release: newRelease } = releasePayload;
     const { name: repositoryName, owner: repositoryOwner } = repositoryRelease;
     const { login: repositoryOwnerName } = repositoryOwner;
     const { number: milestoneNumber } = linkedMilestone;
-  
+    const { id: releaseId } = newRelease;
+    const issuesLabels = '"Status: Done"';
+
     // Test bot makes GET request for All milestones from repo.
     const getMilestones = nock('https://api.github.com')
     .get(`/repos/${repositoryOwnerName}/${repositoryName}/milestones`)
@@ -35,10 +37,16 @@ describe('release created', () => {
     .reply(200, linkedIssues)
     .log(console.log);
 
+    // // Test bot makes PATCH request to update release notes
+    // const updateReleaseNotes = nock('https://api.github.com')
+    // .patch(`/repos/${repositoryOwnerName}/${repositoryName}/releases/${releaseId}`)
+    // .reply(200)
+    // .log(console.log);
+
     await probot.receive({ name: 'release', payload: releasePayload });
 
     getMilestones.done();
     getMilestoneIssues.done();
-
+    // updateReleaseNotes.done();
   });
 });
