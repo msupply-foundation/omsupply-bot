@@ -1,7 +1,7 @@
 import { Context } from 'probot';
 import { GitHubAPI } from 'probot/lib/github'
 import { ReleasePayload, RepositoryPayload, Release, MilestonesResponse, Milestones, Milestone } from '../types';
-import { ListMilestonesParams, ListIssuesForRepoParams, UpdateReleaseParams } from '../types/params';
+import { ListMilestonesParams, UpdateReleaseParams } from '../types/params';
 import { findMilestone, getIssueNotes } from '../helpers';
 // @ts-ignore
 import { getIssuesByMilestone }  from '../../changes-log/changesLogGenerator.js';
