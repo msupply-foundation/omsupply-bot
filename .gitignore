@@ -10,6 +10,7 @@ lib/
 
 # Dependencies
 node_modules/
+changes-log/
 
 # Emacs
 *~
