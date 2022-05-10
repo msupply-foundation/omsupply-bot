@@ -20,7 +20,8 @@ export const findCard = (cards: Card[], issue: { url: string }) => {
 export const findProject = (projects: Project[], projectName: string) =>
   find(projects, ({ name }: { name: string }) => stringEquals(name, projectName));
 
-export const getColumn = (columnName: string): string | undefined => mapLookup(COLUMN_MAP, columnName.toLowerCase());
+export const getColumn = (columnName: string): string | undefined =>
+  mapLookup(COLUMN_MAP, columnName.toLowerCase());
 
 export const getColumnsMap = (columns: Columns): ColumnMap =>
   merge(
@@ -31,9 +32,11 @@ export const getColumnsMap = (columns: Columns): ColumnMap =>
     })
   ) as ColumnMap;
 
-export const getLabel = (labelName: string): string | undefined => mapLookup(LABEL_MAP, labelName.toLowerCase());
+export const getLabel = (labelName: string): string | undefined =>
+  mapLookup(LABEL_MAP, labelName.toLowerCase());
 
-export const getLabelColumn = (labelName: string): string | undefined => mapLookup(LABEL_COLUMN_MAP, getLabel(parseIssueLabel(labelName).toLowerCase()))
+export const getLabelColumn = (labelName: string): string | undefined =>
+  mapLookup(LABEL_COLUMN_MAP, getLabel(parseIssueLabel(labelName).toLowerCase()));
 
 export const getMilestoneParam = ({ number }: { number: number }) => number;
 
@@ -45,6 +48,7 @@ export const parseIssueLabel = (labelName: string): string => {
   return (issueLabel && issueLabel.toLowerCase()) || '';
 };
 export const parsePullRequestIssueNumber = (issueBody: string): string => {
+  if (!issueBody) return '';
   const matches = issueBody.match(REGEX.PR_ISSUE_NUMBER);
   const [, issueNumber] = matches || [, ''];
   return (issueNumber && issueNumber.toLowerCase()) || '';
